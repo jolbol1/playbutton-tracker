@@ -1,0 +1,50 @@
+{
+  "name": "playbutton-tracker",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ],
+    "catalog": {
+      "dotenv": "^17.2.2",
+      "zod": "^4.1.13",
+      "@types/node": "^22.13.14",
+      "lucide-react": "^0.546.0",
+      "next-themes": "^0.4.6",
+      "react": "^19.2.3",
+      "react-dom": "^19.2.3",
+      "sonner": "^2.0.5",
+      "tailwindcss": "^4.1.18",
+      "@types/react": "^19.2.10",
+      "@types/react-dom": "^19.2.3",
+      "alchemy": "^0.82.1"
+    }
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev:web": "turbo -F web dev",
+    "deploy": "turbo -F @playbutton-tracker/infra deploy",
+    "destroy": "turbo -F @playbutton-tracker/infra destroy",
+    "check": "ultracite check",
+    "fix": "ultracite fix"
+  },
+  "dependencies": {
+    "@playbutton-tracker/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.5",
+    "@cloudflare/workers-types": "^4.20251213.0",
+    "@playbutton-tracker/config": "workspace:*",
+    "@types/node": "catalog:",
+    "turbo": "^2.8.12",
+    "typescript": "^5",
+    "ultracite": "7.2.5"
+  },
+  "packageManager": "bun@1.3.10"
+}
