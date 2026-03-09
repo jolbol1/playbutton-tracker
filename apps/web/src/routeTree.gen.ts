@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ChannelHandleRouteImport } from './routes/channel.$handle'
+import { Route as ChannelHandleOgDotpngRouteImport } from './routes/channel.$handle.og[.]png'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,39 @@ const ChannelHandleRoute = ChannelHandleRouteImport.update({
   path: '/channel/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChannelHandleOgDotpngRoute = ChannelHandleOgDotpngRouteImport.update({
+  id: '/og.png',
+  path: '/og.png',
+  getParentRoute: () => ChannelHandleRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/channel/$handle': typeof ChannelHandleRoute
+  '/channel/$handle': typeof ChannelHandleRouteWithChildren
+  '/channel/$handle/og.png': typeof ChannelHandleOgDotpngRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/channel/$handle': typeof ChannelHandleRoute
+  '/channel/$handle': typeof ChannelHandleRouteWithChildren
+  '/channel/$handle/og.png': typeof ChannelHandleOgDotpngRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/channel/$handle': typeof ChannelHandleRoute
+  '/channel/$handle': typeof ChannelHandleRouteWithChildren
+  '/channel/$handle/og.png': typeof ChannelHandleOgDotpngRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/channel/$handle'
+  fullPaths: '/' | '/channel/$handle' | '/channel/$handle/og.png'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/channel/$handle'
-  id: '__root__' | '/' | '/channel/$handle'
+  to: '/' | '/channel/$handle' | '/channel/$handle/og.png'
+  id: '__root__' | '/' | '/channel/$handle' | '/channel/$handle/og.png'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ChannelHandleRoute: typeof ChannelHandleRoute
+  ChannelHandleRoute: typeof ChannelHandleRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +74,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChannelHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/channel/$handle/og.png': {
+      id: '/channel/$handle/og.png'
+      path: '/og.png'
+      fullPath: '/channel/$handle/og.png'
+      preLoaderRoute: typeof ChannelHandleOgDotpngRouteImport
+      parentRoute: typeof ChannelHandleRoute
+    }
   }
 }
 
+interface ChannelHandleRouteChildren {
+  ChannelHandleOgDotpngRoute: typeof ChannelHandleOgDotpngRoute
+}
+
+const ChannelHandleRouteChildren: ChannelHandleRouteChildren = {
+  ChannelHandleOgDotpngRoute: ChannelHandleOgDotpngRoute,
+}
+
+const ChannelHandleRouteWithChildren = ChannelHandleRoute._addFileChildren(
+  ChannelHandleRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ChannelHandleRoute: ChannelHandleRoute,
+  ChannelHandleRoute: ChannelHandleRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

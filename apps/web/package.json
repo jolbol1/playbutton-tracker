@@ -14,6 +14,8 @@
     "@fontsource-variable/inter": "^5.2.8",
     "@playbutton-tracker/env": "workspace:*",
     "@tailwindcss/vite": "^4.1.18",
+    "@takumi-rs/image-response": "^0.71.2",
+    "@takumi-rs/wasm": "^0.71.2",
     "@tanstack/react-router": "^1.141.1",
     "@tanstack/react-start": "^1.141.1",
     "@tanstack/router-plugin": "^1.141.1",
