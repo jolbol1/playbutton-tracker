@@ -27,5 +27,5 @@
   "dbSetup": "none",
   "api": "none",
   "webDeploy": "cloudflare",
-  "serverDeploy": "none",
+  "serverDeploy": "none"
 }
