@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Toaster } from "sonner";
+import { YouTubeLogo } from "@/components/channel/youtube-logo";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import appCss from "../index.css?url";
 
@@ -84,7 +85,22 @@ function RootDocument() {
       </head>
       <body>
         <TooltipProvider>
-          <Outlet />
+          <div className="flex min-h-dvh flex-col">
+            <main className="flex-1">
+              <Outlet />
+            </main>
+            <footer className="flex items-center justify-center gap-2 px-4 pb-6 text-muted-foreground text-sm">
+              <YouTubeLogo className="h-4 w-auto text-primary" />
+              <a
+                className="transition-opacity hover:opacity-80"
+                href="https://www.jamesshopland.com/"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Made by James Shopland
+              </a>
+            </footer>
+          </div>
         </TooltipProvider>
         <Toaster richColors />
         <TanStackRouterDevtools position="bottom-left" />

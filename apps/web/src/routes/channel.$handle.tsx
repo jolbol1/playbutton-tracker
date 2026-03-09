@@ -5,7 +5,6 @@ import { ChannelPageSkeleton } from "@/components/channel/channel-page-skeleton"
 import { MetricRow } from "@/components/channel/metric-row";
 import { PlayButtonContent } from "@/components/channel/play-button-content";
 import { ProgressBar } from "@/components/channel/progress-bar";
-import { YouTubeLogo } from "@/components/channel/youtube-logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -208,11 +207,6 @@ function ChannelPageView({ snapshot }: ChannelPageViewProps) {
               </Card>
             );
           })}
-        </div>
-
-        <div className="flex items-center justify-center gap-2 pt-2 text-muted-foreground text-sm">
-          <YouTubeLogo className="h-4 w-auto text-primary" />
-          <span>Made by James Shopland</span>
         </div>
       </div>
     </div>
