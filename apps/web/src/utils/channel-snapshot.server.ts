@@ -7,6 +7,7 @@ import {
 } from "./channel-schema";
 
 const JSON_CONTENT_TYPE = "application/json";
+const LOG_PAYLOAD_PREVIEW_LIMIT = 1000;
 
 const channelMetadataResponseSchema = z.object({
   data: z.object({
@@ -101,6 +102,26 @@ const parseViewStatsBody = async (response: Response): Promise<unknown> => {
   return JSON.parse(payload);
 };
 
+const getPayloadPreview = (payload: unknown): string => {
+  if (payload === null) {
+    return "null";
+  }
+
+  if (payload === undefined) {
+    return "undefined";
+  }
+
+  if (typeof payload === "string") {
+    return payload.slice(0, LOG_PAYLOAD_PREVIEW_LIMIT);
+  }
+
+  try {
+    return JSON.stringify(payload).slice(0, LOG_PAYLOAD_PREVIEW_LIMIT);
+  } catch {
+    return "[unserializable payload]";
+  }
+};
+
 const fetchFromViewStats = async <T>(
   path: string,
   schema: z.ZodType<T>,
@@ -133,6 +154,12 @@ const fetchFromViewStats = async <T>(
   try {
     payload = await parseViewStatsBody(response);
   } catch (error) {
+    console.error("ViewStats response decode failed", {
+      contentType: response.headers.get("content-type"),
+      path,
+      searchParams,
+      status: response.status || 502,
+    });
     throw new ViewStatsError(
       "Failed to decode ViewStats response",
       response.status || 502,
@@ -141,6 +168,15 @@ const fetchFromViewStats = async <T>(
   }
 
   if (!response.ok) {
+    console.error("ViewStats request failed", {
+      contentType: response.headers.get("content-type"),
+      path,
+      payloadPreview: getPayloadPreview(payload),
+      searchParams,
+      status: response.status,
+      statusText: response.statusText,
+      url: url.toString(),
+    });
     throw new ViewStatsError(
       "ViewStats request failed",
       response.status,
@@ -148,7 +184,17 @@ const fetchFromViewStats = async <T>(
     );
   }
 
-  return schema.parse(payload);
+  try {
+    return schema.parse(payload);
+  } catch (error) {
+    console.error("ViewStats response schema validation failed", {
+      path,
+      payloadPreview: getPayloadPreview(payload),
+      searchParams,
+      url: url.toString(),
+    });
+    throw error;
+  }
 };
 
 export const getChannelSnapshot = async (

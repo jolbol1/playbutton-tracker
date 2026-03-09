@@ -17,10 +17,30 @@ export const getChannelSnapshotFn = createServerFn({ method: "GET" })
         throw notFound();
       }
 
+      if (error instanceof ViewStatsError) {
+        console.error("Channel snapshot request failed", {
+          details: error.details,
+          handle: data.handle,
+          message: error.message,
+          status: error.status,
+        });
+        throw new Error(`Failed to fetch channel snapshot (${error.status})`, {
+          cause: error,
+        });
+      }
+
       if (error instanceof z.ZodError) {
+        console.error("Channel snapshot response validation failed", {
+          handle: data.handle,
+          issues: error.issues,
+        });
         throw new Error("Unexpected ViewStats response shape");
       }
 
+      console.error("Channel snapshot request failed with unexpected error", {
+        error,
+        handle: data.handle,
+      });
       throw new Error("Failed to fetch channel snapshot", {
         cause: error,
       });
