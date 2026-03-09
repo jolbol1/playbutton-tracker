@@ -11,6 +11,10 @@ import appCss from "../index.css?url";
 
 export type RouterAppContext = Record<string, never>;
 
+const APP_TITLE = "Play Button Tracker";
+const APP_DESCRIPTION =
+  "Track YouTube channel subscriber progress toward creator awards, estimate milestone timelines, and view recent growth trends.";
+
 export const Route = createRootRouteWithContext<RouterAppContext>()({
   head: () => ({
     meta: [
@@ -22,7 +26,39 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "My App",
+        title: APP_TITLE,
+      },
+      {
+        name: "description",
+        content: APP_DESCRIPTION,
+      },
+      {
+        name: "robots",
+        content: "index,follow",
+      },
+      {
+        property: "og:type",
+        content: "website",
+      },
+      {
+        property: "og:title",
+        content: APP_TITLE,
+      },
+      {
+        property: "og:description",
+        content: APP_DESCRIPTION,
+      },
+      {
+        name: "twitter:card",
+        content: "summary",
+      },
+      {
+        name: "twitter:title",
+        content: APP_TITLE,
+      },
+      {
+        name: "twitter:description",
+        content: APP_DESCRIPTION,
       },
     ],
     links: [
