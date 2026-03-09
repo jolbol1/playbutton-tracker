@@ -1,4 +1,3 @@
-import interLatinFontUrl from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
 import { ImageResponse } from "@takumi-rs/image-response/wasm";
 import module from "@takumi-rs/wasm/next";
 import { createFileRoute } from "@tanstack/react-router";
@@ -12,6 +11,8 @@ import { getChannelSnapshot } from "@/utils/channel-snapshot.server";
 
 const CACHE_CONTROL_HEADER =
   "public, max-age=900, s-maxage=900, stale-while-revalidate=86400";
+const INTER_FONT_URL =
+  "https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.2.8/files/inter-latin-wght-normal.woff2";
 const OG_FONT_NAME = "Inter Variable";
 
 const interFontDataPromises = new Map<string, Promise<ArrayBuffer>>();
@@ -40,21 +41,8 @@ const getDebugResponse = (
   });
 };
 
-const getPublicAssetUrl = (assetUrl: string, requestUrl: string): string => {
-  if (assetUrl.startsWith("http://") || assetUrl.startsWith("https://")) {
-    return assetUrl;
-  }
-
-  const requestOrigin = new URL(requestUrl).origin;
-  const normalizedAssetPath = assetUrl.startsWith("/")
-    ? assetUrl
-    : `/${assetUrl}`;
-
-  return new URL(normalizedAssetPath, requestOrigin).toString();
-};
-
-const getInterFontData = (requestUrl: string): Promise<ArrayBuffer> => {
-  const fontUrl = getPublicAssetUrl(interLatinFontUrl, requestUrl);
+const getInterFontData = (): Promise<ArrayBuffer> => {
+  const fontUrl = INTER_FONT_URL;
   const existingPromise = interFontDataPromises.get(fontUrl);
 
   if (existingPromise !== undefined) {
@@ -98,7 +86,7 @@ export const Route = createFileRoute("/channel/$handle/og.png")({
 
         try {
           const [fontData, snapshot] = await Promise.all([
-            getInterFontData(request.url),
+            getInterFontData(),
             getChannelSnapshot(params.handle),
           ]);
 
@@ -114,6 +102,7 @@ export const Route = createFileRoute("/channel/$handle/og.png")({
           if (isDebugMode) {
             return getDebugResponse({
               debug: true,
+              fontUrl: INTER_FONT_URL,
               fontBytes: fontData.byteLength,
               handle: params.handle,
               ok: true,
@@ -158,6 +147,7 @@ export const Route = createFileRoute("/channel/$handle/og.png")({
               debug: isDebugMode,
               error: getErrorDetails(error),
               fallback: "/og.png",
+              fontUrl: INTER_FONT_URL,
               handle: params.handle,
               ok: false,
               reason: "channel_not_found",
@@ -181,6 +171,7 @@ export const Route = createFileRoute("/channel/$handle/og.png")({
             debug: isDebugMode,
             error: getErrorDetails(error),
             fallback: "/og.png",
+            fontUrl: INTER_FONT_URL,
             handle: params.handle,
             ok: false,
             reason: "generation_failed",
