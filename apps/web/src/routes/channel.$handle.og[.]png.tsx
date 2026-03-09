@@ -40,8 +40,21 @@ const getDebugResponse = (
   });
 };
 
+const getPublicAssetUrl = (assetUrl: string, requestUrl: string): string => {
+  if (assetUrl.startsWith("http://") || assetUrl.startsWith("https://")) {
+    return assetUrl;
+  }
+
+  const requestOrigin = new URL(requestUrl).origin;
+  const normalizedAssetPath = assetUrl.startsWith("/")
+    ? assetUrl
+    : `/${assetUrl}`;
+
+  return new URL(normalizedAssetPath, requestOrigin).toString();
+};
+
 const getInterFontData = (requestUrl: string): Promise<ArrayBuffer> => {
-  const fontUrl = new URL(interLatinFontUrl, requestUrl).toString();
+  const fontUrl = getPublicAssetUrl(interLatinFontUrl, requestUrl);
   const existingPromise = interFontDataPromises.get(fontUrl);
 
   if (existingPromise !== undefined) {
