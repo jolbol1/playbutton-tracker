@@ -1,52 +1,47 @@
-# playbutton-tracker
+# Play Button Tracker
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Self, and more.
+Track a YouTube channel's progress toward its next creator award and estimate milestone timelines from recent subscriber growth.
 
-## Features
+## Stack
 
-- **TypeScript** - For type safety and improved developer experience
-- **TanStack Start** - SSR framework with TanStack Router
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **Turborepo** - Optimized monorepo build system
+- TanStack Start
+- React 19
+- Tailwind CSS
+- Cloudflare Workers
+- Bun + Turborepo
 
-## Getting Started
-
-First, install the dependencies:
+## Local Development
 
 ```bash
 bun install
-```
-
-Then, run the development server:
-
-```bash
 bun run dev
 ```
 
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the fullstack application.
+The web app runs at `http://localhost:3001`.
 
-## Deployment (Cloudflare Workers)
+## Required Environment Variables
 
-- Dev: `cd apps/web && bun run dev`
-- Preview production build: `cd apps/web && bun run preview`
-- Deploy: `cd apps/web && bun run deploy`
-- Generate Worker env types: `cd apps/web && bun run cf-typegen`
+- `VIEWSTATS_BASE_URL`
+- `VIEWSTATS_IV_SOURCE`
+- `VIEWSTATS_KEY_SOURCE`
+- `VIEWSTATS_API_TOKEN`
 
-This app now uses Cloudflare's native TanStack Start deployment flow with `wrangler` and `@cloudflare/vite-plugin`.
-See the [Cloudflare TanStack Start guide](https://developers.cloudflare.com/workers/framework-guides/web-apps/tanstack-start/) for CI/build settings and custom domain configuration.
+For local development, put them in `apps/web/.env`.
+For production, configure them in Cloudflare Workers. Keep sensitive values as Worker secrets.
 
-## Project Structure
+## Useful Commands
 
+```bash
+bun run dev
+bun run build
+bun run deploy
 ```
-playbutton-tracker/
-├── apps/
-│   └── web/         # Fullstack application (React + TanStack Start)
+
+If you want to work directly in the web app package:
+
+```bash
+cd apps/web
+bun run dev
+bun run preview
+bun run deploy
 ```
-
-## Available Scripts
-
-- `bun run dev`: Start all applications in development mode
-- `bun run build`: Build all applications
-- `bun run dev:web`: Start only the web application
-- `bun run deploy`: Build and deploy the web app to Cloudflare Workers
-- `bun run check-types`: Check TypeScript types across all apps
