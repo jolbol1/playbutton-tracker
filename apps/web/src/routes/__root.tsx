@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Toaster } from "sonner";
-import { TooltipProvider } from "@/components/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import appCss from "../index.css?url";
 
 export type RouterAppContext = Record<string, never>;

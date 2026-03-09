@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
 
-import { Button } from "@/components/button";
-import { Card, CardContent, CardHeader } from "@/components/card";
-import { Input } from "@/components/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/")({
   component: HomeComponent,

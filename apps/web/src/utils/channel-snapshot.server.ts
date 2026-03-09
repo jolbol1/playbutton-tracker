@@ -1,16 +1,12 @@
 import { env } from "@playbutton-tracker/env/server";
 import { z } from "zod";
 
-const JSON_CONTENT_TYPE = "application/json";
+import {
+  type ViewStatsChannelSnapshot,
+  ViewStatsError,
+} from "./channel-schema";
 
-export interface ViewStatsChannelSnapshot {
-  avatarUrl: string | null;
-  channelName: string;
-  handle: string;
-  subscriberCount: number | null;
-  subsGained7Day: number | null;
-  subsGained28Day: number | null;
-}
+const JSON_CONTENT_TYPE = "application/json";
 
 const channelMetadataResponseSchema = z.object({
   data: z.object({
@@ -31,18 +27,6 @@ const channelStatsPointSchema = z.object({
 const channelStatsResponseSchema = z.object({
   data: z.array(channelStatsPointSchema),
 });
-
-export class ViewStatsError extends Error {
-  readonly details?: unknown;
-  readonly status: number;
-
-  constructor(message: string, status: number, details?: unknown) {
-    super(message);
-    this.name = "ViewStatsError";
-    this.status = status;
-    this.details = details;
-  }
-}
 
 const normalizeRequestHandle = (handle: string): string => {
   return handle.startsWith("@") ? handle : `@${handle}`;
@@ -205,8 +189,6 @@ export const getChannelSnapshot = async (
       }
     ),
   ]);
-
-  console.log(metadata);
 
   return {
     avatarUrl: metadata.data.avatarUrl,

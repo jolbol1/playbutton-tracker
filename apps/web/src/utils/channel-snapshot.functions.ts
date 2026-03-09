@@ -1,12 +1,11 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-
-import { getChannelSnapshot, ViewStatsError } from "./channel-snapshot.server";
-
-const getChannelSnapshotInputSchema = z.object({
-  handle: z.string().trim().min(1),
-});
+import {
+  getChannelSnapshotInputSchema,
+  ViewStatsError,
+} from "./channel-schema";
+import { getChannelSnapshot } from "./channel-snapshot.server";
 
 export const getChannelSnapshotFn = createServerFn({ method: "GET" })
   .inputValidator(getChannelSnapshotInputSchema)
