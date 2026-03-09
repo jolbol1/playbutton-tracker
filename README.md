@@ -2,6 +2,8 @@
 
 Track a YouTube channel's progress toward its next creator award and estimate milestone timelines from recent subscriber growth.
 
+![Play Button Tracker demo](apps/web/public/demo.png)
+
 ## Stack
 
 - TanStack Start
