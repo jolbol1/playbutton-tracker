@@ -19,6 +19,11 @@ bun run dev
 
 The web app runs at `http://localhost:3001`.
 
+## Live Site
+
+- Home: `https://www.playbuttontracker.com`
+- Example channel: `https://www.playbuttontracker.com/channel/betterstack`
+
 ## Required Environment Variables
 
 - `VIEWSTATS_BASE_URL`
