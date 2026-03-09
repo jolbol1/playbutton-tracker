@@ -5,8 +5,8 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { Github } from "lucide-react";
 import { Toaster } from "sonner";
-import { YouTubeLogo } from "@/components/channel/youtube-logo";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import appCss from "../index.css?url";
 
@@ -90,7 +90,15 @@ function RootDocument() {
               <Outlet />
             </main>
             <footer className="flex items-center justify-center gap-2 px-4 pb-6 text-muted-foreground text-sm">
-              <YouTubeLogo className="h-4 w-auto text-primary" />
+              <a
+                aria-label="View the Play Button Tracker source on GitHub"
+                className="transition-opacity hover:opacity-80"
+                href="https://github.com/jolbol1/playbutton-tracker"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                <Github className="h-4 w-4" />
+              </a>
               <a
                 className="transition-opacity hover:opacity-80"
                 href="https://www.jamesshopland.com/"
