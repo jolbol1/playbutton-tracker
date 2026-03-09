@@ -3,9 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "cf-typegen": "wrangler types",
     "build": "vite build",
-    "serve": "vite preview",
-    "dev:bare": "vite dev"
+    "deploy": "bun run build && wrangler deploy",
+    "dev": "vite dev",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
@@ -40,7 +42,6 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "^5.0.4",
-    "alchemy": "catalog:",
     "jsdom": "^26.0.0",
     "typescript": "^5",
     "vite": "^7.0.2",

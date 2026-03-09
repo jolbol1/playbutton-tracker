@@ -16,8 +16,7 @@
       "sonner": "^2.0.5",
       "tailwindcss": "^4.1.18",
       "@types/react": "^19.2.10",
-      "@types/react-dom": "^19.2.3",
-      "alchemy": "^0.82.1"
+      "@types/react-dom": "^19.2.3"
     }
   },
   "type": "module",
@@ -26,8 +25,7 @@
     "build": "turbo build",
     "check-types": "turbo check-types",
     "dev:web": "turbo -F web dev",
-    "deploy": "turbo -F @playbutton-tracker/infra deploy",
-    "destroy": "turbo -F @playbutton-tracker/infra destroy",
+    "deploy": "bun --cwd apps/web run deploy",
     "check": "ultracite check",
     "fix": "ultracite fix"
   },

@@ -14,7 +14,6 @@
   },
   "devDependencies": {
     "@playbutton-tracker/config": "workspace:*",
-    "@playbutton-tracker/infra": "workspace:*",
     "@types/node": "catalog:",
     "typescript": "^5"
   }
