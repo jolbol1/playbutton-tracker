@@ -29,24 +29,11 @@ const getErrorDetails = (error: unknown) => {
   return { value: error };
 };
 
-const getDebugResponse = (
-  body: Record<string, unknown>,
-  status = 200
-): Response => {
-  return Response.json(body, {
-    headers: {
-      "Cache-Control": "no-store",
-    },
-    status,
-  });
-};
-
 const getInterFontData = (): Promise<ArrayBuffer> => {
   const fontUrl = INTER_FONT_URL;
   const existingPromise = interFontDataPromises.get(fontUrl);
 
   if (existingPromise !== undefined) {
-    console.log("OG image font cache hit", { fontUrl });
     return existingPromise;
   }
 
@@ -59,7 +46,6 @@ const getInterFontData = (): Promise<ArrayBuffer> => {
   });
 
   interFontDataPromises.set(fontUrl, fontDataPromise);
-  console.log("OG image font fetch started", { fontUrl });
   return fontDataPromise;
 };
 
@@ -75,43 +61,12 @@ export const Route = createFileRoute("/channel/$handle/og.png")({
     handlers: {
       GET: async ({ params, request }) => {
         const startedAt = Date.now();
-        const url = new URL(request.url);
-        const isDebugMode = url.searchParams.get("debug") === "1";
-
-        console.log("OG image request started", {
-          debug: isDebugMode,
-          handle: params.handle,
-          requestUrl: request.url,
-        });
 
         try {
           const [fontData, snapshot] = await Promise.all([
             getInterFontData(),
             getChannelSnapshot(params.handle),
           ]);
-
-          console.log("OG image data loaded", {
-            fontBytes: fontData.byteLength,
-            handle: params.handle,
-            requestUrl: request.url,
-            resolvedHandle: snapshot.handle,
-            subscriberCount: snapshot.subscriberCount,
-            tookMs: Date.now() - startedAt,
-          });
-
-          if (isDebugMode) {
-            return getDebugResponse({
-              debug: true,
-              fontUrl: INTER_FONT_URL,
-              fontBytes: fontData.byteLength,
-              handle: params.handle,
-              ok: true,
-              requestUrl: request.url,
-              resolvedHandle: snapshot.handle,
-              subscriberCount: snapshot.subscriberCount,
-              tookMs: Date.now() - startedAt,
-            });
-          }
 
           const response = new ImageResponse(
             <ChannelOgImage snapshot={snapshot} />,
@@ -134,17 +89,10 @@ export const Route = createFileRoute("/channel/$handle/og.png")({
             }
           );
 
-          console.log("OG image response generated", {
-            handle: params.handle,
-            requestUrl: request.url,
-            tookMs: Date.now() - startedAt,
-          });
-
           return response;
         } catch (error) {
           if (error instanceof ViewStatsError && error.status === 404) {
             const details = {
-              debug: isDebugMode,
               error: getErrorDetails(error),
               fallback: "/og.png",
               fontUrl: INTER_FONT_URL,
@@ -160,15 +108,10 @@ export const Route = createFileRoute("/channel/$handle/og.png")({
               details
             );
 
-            if (isDebugMode) {
-              return getDebugResponse(details, 404);
-            }
-
             return getStaticOgImageResponse(request.url, 307);
           }
 
           const details = {
-            debug: isDebugMode,
             error: getErrorDetails(error),
             fallback: "/og.png",
             fontUrl: INTER_FONT_URL,
@@ -183,10 +126,6 @@ export const Route = createFileRoute("/channel/$handle/og.png")({
             "Channel og:image generation failed, falling back to static image",
             details
           );
-
-          if (isDebugMode) {
-            return getDebugResponse(details, 500);
-          }
 
           return getStaticOgImageResponse(request.url, 307);
         }
