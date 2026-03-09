@@ -21,14 +21,84 @@ import {
   getProgressMetrics,
   getTrackedPlayButton,
 } from "@/lib/channel-helpers";
+import { CHANNEL_OG_IMAGE_ALT, getChannelSeoMeta } from "@/lib/channel-og";
 import { cn } from "@/lib/utils";
 import type { ViewStatsChannelSnapshot } from "@/utils/channel-schema";
 import { getChannelSnapshotFn } from "../utils/channel-snapshot.functions";
 
 export const Route = createFileRoute("/channel/$handle")({
-  ssr: false,
   loader: ({ params }) =>
     getChannelSnapshotFn({ data: { handle: params.handle } }),
+  head: ({ loaderData }) => {
+    if (loaderData === undefined) {
+      return {};
+    }
+
+    const { description, imageUrl, pageUrl, title } =
+      getChannelSeoMeta(loaderData);
+
+    return {
+      links: [
+        {
+          href: pageUrl,
+          rel: "canonical",
+        },
+      ],
+      meta: [
+        {
+          title,
+        },
+        {
+          content: description,
+          name: "description",
+        },
+        {
+          content: "website",
+          property: "og:type",
+        },
+        {
+          content: title,
+          property: "og:title",
+        },
+        {
+          content: description,
+          property: "og:description",
+        },
+        {
+          content: imageUrl,
+          property: "og:image",
+        },
+        {
+          content: CHANNEL_OG_IMAGE_ALT,
+          property: "og:image:alt",
+        },
+        {
+          content: pageUrl,
+          property: "og:url",
+        },
+        {
+          content: "summary_large_image",
+          name: "twitter:card",
+        },
+        {
+          content: title,
+          name: "twitter:title",
+        },
+        {
+          content: description,
+          name: "twitter:description",
+        },
+        {
+          content: imageUrl,
+          name: "twitter:image",
+        },
+        {
+          content: CHANNEL_OG_IMAGE_ALT,
+          name: "twitter:image:alt",
+        },
+      ],
+    };
+  },
   component: ChannelPage,
   notFoundComponent: ChannelNotFound,
   pendingComponent: ChannelPageSkeleton,
