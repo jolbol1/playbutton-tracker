@@ -167,35 +167,6 @@ export function ChannelOgImage({
   );
 }
 
-export function ChannelOgFallbackImage({
-  handle,
-  message,
-}: {
-  handle: string;
-  message: string;
-}) {
-  const normalizedHandle = normalizeHandle(handle);
-
-  return (
-    <OgFrame>
-      <div style={styles.panel}>
-        <div style={styles.brandBadge}>
-          <div style={styles.brandIcon}>
-            <div style={styles.brandPlayTriangle} />
-          </div>
-          <div style={styles.brandText}>Play Button Tracker</div>
-        </div>
-
-        <div style={styles.fallbackBody}>
-          <div style={styles.heroLabel}>Channel preview unavailable</div>
-          <div style={styles.heroTitle}>@{normalizedHandle}</div>
-          <div style={styles.heroSubtitle}>{message}</div>
-        </div>
-      </div>
-    </OgFrame>
-  );
-}
-
 function Avatar({ fallback, src }: { fallback: string; src: string | null }) {
   return src ? (
     <img alt="" height="96" src={src} style={styles.avatarImage} width="96" />
