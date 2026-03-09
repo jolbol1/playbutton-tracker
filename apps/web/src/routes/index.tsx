@@ -35,7 +35,7 @@ function HomeComponent() {
   };
 
   return (
-    <div className="mx-auto flex h-dvh max-w-lg flex-col items-center justify-center gap-12 px-4">
+    <div className="mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center gap-12 px-4 py-8">
       <div className="space-y-2">
         <svg
           aria-label="Play Button Tracker"

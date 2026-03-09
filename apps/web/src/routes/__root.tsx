@@ -86,7 +86,7 @@ function RootDocument() {
       <body>
         <TooltipProvider>
           <div className="flex min-h-dvh flex-col">
-            <main className="flex-1">
+            <main className="flex flex-1 flex-col">
               <Outlet />
             </main>
             <footer className="flex items-center justify-center gap-2 px-4 pb-6 text-muted-foreground text-sm">
