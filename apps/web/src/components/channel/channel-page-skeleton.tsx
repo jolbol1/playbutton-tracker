@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function ChannelPageSkeleton() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 md:px-6">
+    <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-10 md:px-12">
       <div className="space-y-8">
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div className="flex w-full flex-row items-center gap-4 sm:w-auto sm:flex-1">
@@ -71,11 +71,6 @@ export function ChannelPageSkeleton() {
               </CardContent>
             </Card>
           ))}
-        </div>
-
-        <div className="flex items-center justify-center gap-2 pt-2">
-          <Skeleton className="h-4 w-6" />
-          <Skeleton className="h-4 w-40" />
         </div>
       </div>
     </div>
