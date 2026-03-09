@@ -212,7 +212,7 @@ function ChannelPageView({ snapshot }: ChannelPageViewProps) {
 
         <div className="flex items-center justify-center gap-2 pt-2 text-muted-foreground text-sm">
           <YouTubeLogo className="h-4 w-auto text-primary" />
-          <span>Play Button Progress Tracker</span>
+          <span>Made by James Shopland</span>
         </div>
       </div>
     </div>
