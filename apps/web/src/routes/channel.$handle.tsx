@@ -54,7 +54,7 @@ function ChannelPageView({ snapshot }: ChannelPageViewProps) {
   const channelUrl = `https://youtube.com/@${snapshot.handle}`;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 md:px-6">
+    <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-10 md:px-12">
       <div className="space-y-8">
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div className="flex flex-row items-center gap-4">
