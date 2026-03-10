@@ -33,7 +33,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.17.1",
+    "@cloudflare/vite-plugin": "^1.27.0",
     "@playbutton-tracker/config": "workspace:*",
     "@tanstack/react-router-devtools": "^1.141.1",
     "@types/react": "catalog:",

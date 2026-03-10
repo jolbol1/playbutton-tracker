@@ -36,10 +36,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.6",
-    "@cloudflare/workers-types": "^4.20251213.0",
+    "@cloudflare/workers-types": "^4.20260310.1",
     "@playbutton-tracker/config": "workspace:*",
     "@types/node": "catalog:",
-    "turbo": "^2.8.12",
+    "turbo": "^2.8.15",
     "typescript": "^5",
     "ultracite": "7.2.5"
   },
