@@ -35,13 +35,13 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.6",
-    "@cloudflare/workers-types": "^4.20251213.0",
+    "@biomejs/biome": "2.4.15",
+    "@cloudflare/workers-types": "^4.20260519.1",
     "@playbutton-tracker/config": "workspace:*",
     "@types/node": "catalog:",
-    "turbo": "^2.8.12",
-    "typescript": "^5",
-    "ultracite": "7.2.5"
+    "turbo": "^2.9.14",
+    "typescript": "^6",
+    "ultracite": "7.7.0"
   },
   "packageManager": "bun@1.3.10"
 }
