@@ -1,6 +1,9 @@
 const CHANNEL_ID_REGEX = /^UC[A-Za-z0-9_-]{22}$/;
 const DIRECT_HANDLE_REGEX = /^@?[A-Za-z0-9._-]+$/;
-const LEADING_AT_REGEX = /^@/;
+const LEADING_AT_REGEX = /^@+/;
+
+export const normalizeChannelHandle = (handle: string): string =>
+  handle.trim().replace(LEADING_AT_REGEX, "").toLowerCase();
 
 export const extractChannelIdentifier = (value: string): string | null => {
   const trimmedValue = value.trim();
@@ -33,12 +36,4 @@ export const extractChannelIdentifier = (value: string): string | null => {
   } catch {
     return null;
   }
-};
-
-export const normalizeViewStatsIdentifier = (identifier: string): string => {
-  if (identifier.startsWith("@") || CHANNEL_ID_REGEX.test(identifier)) {
-    return identifier;
-  }
-
-  return `@${identifier}`;
 };

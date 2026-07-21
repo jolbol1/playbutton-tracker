@@ -13,17 +13,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  createPrediction,
-  formatCompactNumber,
-  formatPlayButtonMilestone,
-  getInitials,
-  getProgressMetrics,
-  getTrackedPlayButton,
-} from "@/lib/channel-helpers";
-import { CHANNEL_OG_IMAGE_ALT, getChannelSeoMeta } from "@/lib/channel-og";
+import { getInitials } from "@/lib/channel-helpers";
+import { getPlayButtonProgress } from "@/lib/play-button-progress";
+import { getSocialPreviewMetadata } from "@/lib/social-preview";
 import { cn } from "@/lib/utils";
-import type { ViewStatsChannelSnapshot } from "@/utils/channel-schema";
+import type { ChannelSnapshot } from "@/utils/channel-snapshot";
 import { getChannelSnapshotFn } from "../utils/channel-snapshot.functions";
 
 export const Route = createFileRoute("/channel/$handle")({
@@ -34,70 +28,10 @@ export const Route = createFileRoute("/channel/$handle")({
       return {};
     }
 
-    const { description, imageUrl, pageUrl, title } =
-      getChannelSeoMeta(loaderData);
-
-    return {
-      links: [
-        {
-          href: pageUrl,
-          rel: "canonical",
-        },
-      ],
-      meta: [
-        {
-          title,
-        },
-        {
-          content: description,
-          name: "description",
-        },
-        {
-          content: "website",
-          property: "og:type",
-        },
-        {
-          content: title,
-          property: "og:title",
-        },
-        {
-          content: description,
-          property: "og:description",
-        },
-        {
-          content: imageUrl,
-          property: "og:image",
-        },
-        {
-          content: CHANNEL_OG_IMAGE_ALT,
-          property: "og:image:alt",
-        },
-        {
-          content: pageUrl,
-          property: "og:url",
-        },
-        {
-          content: "summary_large_image",
-          name: "twitter:card",
-        },
-        {
-          content: title,
-          name: "twitter:title",
-        },
-        {
-          content: description,
-          name: "twitter:description",
-        },
-        {
-          content: imageUrl,
-          name: "twitter:image",
-        },
-        {
-          content: CHANNEL_OG_IMAGE_ALT,
-          name: "twitter:image:alt",
-        },
-      ],
-    };
+    return getSocialPreviewMetadata({
+      channel: loaderData,
+      page: "channel",
+    });
   },
   component: ChannelPage,
   notFoundComponent: ChannelNotFound,
@@ -111,16 +45,11 @@ function ChannelPage() {
 }
 
 interface ChannelPageViewProps {
-  snapshot: ViewStatsChannelSnapshot;
+  snapshot: ChannelSnapshot;
 }
 
 function ChannelPageView({ snapshot }: ChannelPageViewProps) {
-  const trackedPlayButton = getTrackedPlayButton(snapshot.subscriberCount);
-  const progressMetrics = getProgressMetrics(snapshot, trackedPlayButton);
-  const predictions = [
-    createPrediction(snapshot, trackedPlayButton, 7, "Based on last 7 days"),
-    createPrediction(snapshot, trackedPlayButton, 28, "Based on last 28 days"),
-  ];
+  const progress = getPlayButtonProgress(snapshot);
   const channelUrl = `https://youtube.com/@${snapshot.handle}`;
 
   return (
@@ -152,8 +81,8 @@ function ChannelPageView({ snapshot }: ChannelPageViewProps) {
               </div>
               <p className="text-muted-foreground text-sm">
                 @{snapshot.handle}
-                {snapshot.subscriberCount !== null
-                  ? ` · ${formatCompactNumber(snapshot.subscriberCount)} subscribers`
+                {progress.current.subscriberCountLabel !== null
+                  ? ` · ${progress.current.subscriberCountLabel} subscribers`
                   : ""}
               </p>
             </div>
@@ -175,18 +104,18 @@ function ChannelPageView({ snapshot }: ChannelPageViewProps) {
           <CardContent className="p-0">
             <div className="flex flex-col items-center gap-4 md:flex-row md:gap-8">
               <PlayButtonContent
-                buttonColor={trackedPlayButton.buttonColor}
+                buttonColor={progress.playButton.buttonColor}
                 channelTitle={snapshot.channelName}
-                threshold={trackedPlayButton.threshold}
+                threshold={progress.playButton.threshold}
               />
 
               <div className="w-full flex-1 space-y-12 md:space-y-6">
                 <div className="text-center md:text-left">
                   <h2 className="mb-1 font-bold text-2xl text-foreground">
-                    {trackedPlayButton.name}
+                    {progress.playButton.name}
                   </h2>
                   <p className="text-muted-foreground">
-                    {formatPlayButtonMilestone(trackedPlayButton)}
+                    {progress.playButton.milestoneLabel}
                   </p>
                 </div>
 
@@ -199,25 +128,25 @@ function ChannelPageView({ snapshot }: ChannelPageViewProps) {
                       </span>
                     </div>
                     <span className="font-bold text-2xl text-primary">
-                      {progressMetrics.progressPercentageLabel}
+                      {progress.current.progressPercentageLabel}
                     </span>
                   </div>
 
                   <div className="relative">
                     <ProgressBar
-                      ariaLabel={`Progress toward ${trackedPlayButton.name}`}
+                      ariaLabel={`Progress toward ${progress.playButton.name}`}
                       className="h-6 bg-secondary"
-                      value={progressMetrics.progressPercentage}
+                      value={progress.current.progressPercentage}
                     />
                     <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                       <span className="px-2 text-center font-medium text-[11px] text-foreground drop-shadow sm:text-xs">
-                        {progressMetrics.progressLabel}
+                        {progress.current.progressLabel}
                       </span>
                     </div>
                   </div>
 
                   <p className="text-center text-muted-foreground text-sm">
-                    {progressMetrics.subscribersNeededLabel}
+                    {progress.remaining.label}
                   </p>
                 </div>
               </div>
@@ -226,7 +155,7 @@ function ChannelPageView({ snapshot }: ChannelPageViewProps) {
         </Card>
 
         <div className="grid gap-8 md:grid-cols-2">
-          {predictions.map((prediction) => {
+          {progress.predictions.map((prediction) => {
             return (
               <Card key={prediction.period}>
                 <CardHeader>

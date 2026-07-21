@@ -1,15 +1,10 @@
 import type { CSSProperties, ReactNode } from "react";
-import {
-  createPrediction,
-  formatCompactNumber,
-  getInitials,
-  getTrackedPlayButton,
-} from "@/lib/channel-helpers";
-import type { ViewStatsChannelSnapshot } from "@/utils/channel-schema";
+import { getInitials } from "@/lib/channel-helpers";
+import { normalizeChannelHandle } from "@/lib/channel-identifier";
+import type { PlayButtonProgressProjection } from "@/lib/play-button-progress";
+import type { ChannelSnapshot } from "@/utils/channel-snapshot";
 
-const SITE_URL = "https://www.playbuttontracker.com";
 const NUMBER_FORMATTER = new Intl.NumberFormat("en-US");
-const LEADING_AT_REGEX = /^@+/;
 
 const COLORS = {
   accent: "#ff0000",
@@ -22,68 +17,19 @@ const COLORS = {
   muted: "#a1a1aa",
 } as const;
 
-export const CHANNEL_OG_IMAGE_ALT = "Play Button Tracker channel share preview";
-export const CHANNEL_OG_IMAGE_CONTENT_TYPE = "image/png";
-export const CHANNEL_OG_IMAGE_SIZE = {
-  width: 1200,
-  height: 630,
-} as const;
-
-export function getDefaultOgImageUrl(origin?: string): string {
-  return `${getBaseUrl(origin)}/og.png`;
-}
-
-export function getChannelPageUrl(handle: string, origin?: string): string {
-  const normalizedHandle = normalizeHandle(handle);
-  return `${getBaseUrl(origin)}/channel/${encodeURIComponent(normalizedHandle)}`;
-}
-
-export function getChannelOgImageUrl(handle: string, origin?: string): string {
-  return `${getChannelPageUrl(handle, origin)}/og.png`;
-}
-
-export function getChannelSeoMeta(
-  snapshot: ViewStatsChannelSnapshot,
-  origin?: string
-): {
-  description: string;
-  imageUrl: string;
-  pageUrl: string;
-  title: string;
-} {
-  const normalizedHandle = normalizeHandle(snapshot.handle);
-  const trackedPlayButton = getTrackedPlayButton(snapshot.subscriberCount);
-
-  return {
-    description: getChannelSeoDescription(snapshot),
-    imageUrl: getChannelOgImageUrl(normalizedHandle, origin),
-    pageUrl: getChannelPageUrl(normalizedHandle, origin),
-    title: `${snapshot.channelName} (@${normalizedHandle}) | ${trackedPlayButton.name} Progress`,
-  };
-}
-
 export function ChannelOgImage({
+  progress,
   snapshot,
 }: {
-  snapshot: ViewStatsChannelSnapshot;
+  progress: PlayButtonProgressProjection;
+  snapshot: ChannelSnapshot;
 }) {
-  const normalizedHandle = normalizeHandle(snapshot.handle);
-  const trackedPlayButton = getTrackedPlayButton(snapshot.subscriberCount);
+  const normalizedHandle = normalizeChannelHandle(snapshot.handle);
+  const trackedPlayButton = progress.playButton;
   const currentSubscribers = snapshot.subscriberCount;
-  const remainingSubscribers =
-    currentSubscribers === null
-      ? null
-      : Math.max(trackedPlayButton.threshold - currentSubscribers, 0);
-  const hasReachedAllMilestones =
-    trackedPlayButton.variant === "red-diamond" && remainingSubscribers === 0;
-  const progressPercentage =
-    currentSubscribers === null
-      ? 0
-      : Math.min((currentSubscribers / trackedPlayButton.threshold) * 100, 100);
-  const predictions = [
-    createPrediction(snapshot, trackedPlayButton, 7, "7 day trend"),
-    createPrediction(snapshot, trackedPlayButton, 28, "28 day trend"),
-  ];
+  const remainingSubscribers = progress.remaining.subscriberCount;
+  const hasReachedAllMilestones = progress.state === "all-milestones-reached";
+  const predictions = progress.predictions;
 
   const subscriberCountLabel =
     currentSubscribers === null
@@ -98,10 +44,8 @@ export function ChannelOgImage({
     heroSubtitle =
       "This channel has already reached the final tracked milestone.";
   } else if (remainingSubscribers !== null) {
-    heroTitle = `${formatCompactNumber(remainingSubscribers)} subscribers to ${
-      trackedPlayButton.name
-    }`;
-    heroSubtitle = `Currently ${progressPercentage.toFixed(1)}% of the way to ${NUMBER_FORMATTER.format(
+    heroTitle = `${progress.remaining.subscriberCountLabel} subscribers to ${trackedPlayButton.name}`;
+    heroSubtitle = `Currently ${progress.current.progressPercentageLabel} of the way to ${NUMBER_FORMATTER.format(
       trackedPlayButton.threshold
     )}.`;
   }
@@ -154,7 +98,7 @@ export function ChannelOgImage({
             return (
               <PredictionCard
                 key={prediction.period}
-                label={prediction.period}
+                label={`${prediction.periodDays} day trend`}
                 primaryValue={prediction.dailyGrowthLabel}
                 secondaryValue={prediction.daysToGoalLabel}
                 tertiaryValue={prediction.estimatedDateLabel}
@@ -220,48 +164,6 @@ function PredictionCard({
       </div>
     </div>
   );
-}
-
-function getChannelSeoDescription(snapshot: ViewStatsChannelSnapshot): string {
-  const trackedPlayButton = getTrackedPlayButton(snapshot.subscriberCount);
-
-  if (snapshot.subscriberCount === null) {
-    return `Track ${snapshot.channelName} (@${normalizeHandle(
-      snapshot.handle
-    )}) on Play Button Tracker and see progress toward the ${
-      trackedPlayButton.name
-    }.`;
-  }
-
-  const remainingSubscribers = Math.max(
-    trackedPlayButton.threshold - snapshot.subscriberCount,
-    0
-  );
-
-  if (
-    trackedPlayButton.variant === "red-diamond" &&
-    remainingSubscribers === 0
-  ) {
-    return `${snapshot.channelName} (@${normalizeHandle(
-      snapshot.handle
-    )}) has reached every tracked play button milestone on Play Button Tracker.`;
-  }
-
-  return `${snapshot.channelName} (@${normalizeHandle(
-    snapshot.handle
-  )}) has ${formatCompactNumber(
-    snapshot.subscriberCount
-  )} subscribers and needs ${formatCompactNumber(
-    remainingSubscribers
-  )} more for the ${trackedPlayButton.name}.`;
-}
-
-function normalizeHandle(handle: string): string {
-  return handle.replace(LEADING_AT_REGEX, "").trim().toLowerCase();
-}
-
-function getBaseUrl(_origin?: string): string {
-  return SITE_URL;
 }
 
 const styles = {

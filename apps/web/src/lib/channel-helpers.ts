@@ -1,157 +1,33 @@
-import type { ViewStatsChannelSnapshot } from "../utils/channel-schema";
+import type { ChannelSnapshot } from "../utils/channel-snapshot";
+import {
+  formatCompactNumber as formatProjectedCompactNumber,
+  getTrackedPlayButton as getProjectedPlayButton,
+  PLAY_BUTTONS as PLAY_BUTTON_CATALOG,
+  type PlayButton as ProgressPlayButton,
+  type Prediction as ProgressPrediction,
+  createPrediction as projectPrediction,
+} from "./play-button-progress";
 
-export interface PlayButton {
-  buttonColor: string;
-  name: string;
-  threshold: number;
-  variant: "silver" | "gold" | "diamond" | "custom" | "red-diamond";
-}
+export type PlayButton = ProgressPlayButton;
+export type Prediction = Omit<ProgressPrediction, "periodDays" | "state">;
 
-export interface Prediction {
-  dailyGrowthLabel: string;
-  daysToGoalLabel: string;
-  estimatedDateLabel: string;
-  growthRoundingExplanation: string | null;
-  period: string;
-}
+export const PLAY_BUTTONS = PLAY_BUTTON_CATALOG satisfies readonly PlayButton[];
 
-export interface ProgressMetrics {
-  progressLabel: string;
-  progressPercentage: number;
-  progressPercentageLabel: string;
-  subscribersNeededLabel: string;
-}
-
-export const PLAY_BUTTONS = [
-  {
-    buttonColor: "#AEAFB3",
-    name: "Silver Play Button",
-    threshold: 100_000,
-    variant: "silver",
-  },
-  {
-    buttonColor: "#D4AF37",
-    name: "Gold Play Button",
-    threshold: 1_000_000,
-    variant: "gold",
-  },
-  {
-    buttonColor: "#B9F2FF",
-    name: "Diamond Play Button",
-    threshold: 10_000_000,
-    variant: "diamond",
-  },
-  {
-    buttonColor: "#E0115F",
-    name: "Custom Creator Award",
-    threshold: 50_000_000,
-    variant: "custom",
-  },
-  {
-    buttonColor: "#FF3333",
-    name: "Red Diamond Play Button",
-    threshold: 100_000_000,
-    variant: "red-diamond",
-  },
-] satisfies readonly PlayButton[];
-
-const FINAL_PLAY_BUTTON = PLAY_BUTTONS.at(-1) ?? PLAY_BUTTONS[0];
-const COMPACT_NUMBER_FORMATTER = new Intl.NumberFormat("en-US", {
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
-const NUMBER_FORMATTER = new Intl.NumberFormat("en-US");
-const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
-  day: "numeric",
-  month: "long",
-  timeZone: "UTC",
-  year: "numeric",
-});
 const WHITESPACE_REGEX = /\s+/;
 
-export function createPrediction(
-  snapshot: ViewStatsChannelSnapshot,
+/** @deprecated Use getPlayButtonProgress for new callers. */
+export const createPrediction = (
+  snapshot: ChannelSnapshot,
   playButton: PlayButton,
   periodDays: 7 | 28,
   period: string
-): Prediction {
-  const gain =
-    periodDays === 7 ? snapshot.subsGained7Day : snapshot.subsGained28Day;
+): Prediction => projectPrediction(snapshot, playButton, periodDays, period);
 
-  if (snapshot.subscriberCount === null || gain === null) {
-    return {
-      dailyGrowthLabel: "Unavailable",
-      daysToGoalLabel: "Unavailable",
-      estimatedDateLabel: "Unavailable",
-      growthRoundingExplanation: null,
-      period,
-    };
-  }
+/** @deprecated Use labels from getPlayButtonProgress for new callers. */
+export const formatCompactNumber = (value: number): string =>
+  formatProjectedCompactNumber(value);
 
-  const subscribersNeeded = Math.max(
-    playButton.threshold - snapshot.subscriberCount,
-    0
-  );
-  const dailyGrowth = gain / periodDays;
-
-  if (playButton === FINAL_PLAY_BUTTON && subscribersNeeded === 0) {
-    return {
-      dailyGrowthLabel: formatDailyGrowth(dailyGrowth),
-      daysToGoalLabel: "All milestones reached",
-      estimatedDateLabel: "Reached",
-      growthRoundingExplanation: getGrowthRoundingExplanation(
-        gain,
-        dailyGrowth,
-        periodDays
-      ),
-      period,
-    };
-  }
-
-  if (dailyGrowth <= 0) {
-    return {
-      dailyGrowthLabel: formatDailyGrowth(dailyGrowth),
-      daysToGoalLabel: "Not Available",
-      estimatedDateLabel: "Not Available",
-      growthRoundingExplanation: getGrowthRoundingExplanation(
-        gain,
-        dailyGrowth,
-        periodDays
-      ),
-      period,
-    };
-  }
-
-  const daysToGoal = Math.ceil(subscribersNeeded / dailyGrowth);
-  const estimatedDate = new Date(snapshot.capturedAt);
-  estimatedDate.setUTCDate(estimatedDate.getUTCDate() + daysToGoal);
-
-  return {
-    dailyGrowthLabel: formatDailyGrowth(dailyGrowth),
-    daysToGoalLabel: `${NUMBER_FORMATTER.format(daysToGoal)} days`,
-    estimatedDateLabel: DATE_FORMATTER.format(estimatedDate),
-    growthRoundingExplanation: getGrowthRoundingExplanation(
-      gain,
-      dailyGrowth,
-      periodDays
-    ),
-    period,
-  };
-}
-
-export function formatCompactNumber(value: number): string {
-  return COMPACT_NUMBER_FORMATTER.format(value);
-}
-
-export function formatPlayButtonMilestone(playButton: PlayButton): string {
-  if (playButton.variant === "custom") {
-    return `${NUMBER_FORMATTER.format(playButton.threshold)} subscriber milestone (Ruby-style custom award)`;
-  }
-
-  return `${NUMBER_FORMATTER.format(playButton.threshold)} subscriber milestone`;
-}
-
-export function getInitials(value: string): string {
+export const getInitials = (value: string): string => {
   const letters = value
     .split(WHITESPACE_REGEX)
     .filter(Boolean)
@@ -159,98 +35,9 @@ export function getInitials(value: string): string {
     .map((word) => word[0]?.toUpperCase() ?? "");
 
   return letters.join("") || "?";
-}
+};
 
-export function getProgressMetrics(
-  snapshot: ViewStatsChannelSnapshot,
-  playButton: PlayButton
-): ProgressMetrics {
-  const currentSubscribers = snapshot.subscriberCount;
-
-  if (currentSubscribers === null) {
-    return {
-      progressLabel: "Subscriber count unavailable",
-      progressPercentage: 0,
-      progressPercentageLabel: "--",
-      subscribersNeededLabel: "Unable to calculate remaining subscribers",
-    };
-  }
-
-  const subscribersNeeded = Math.max(
-    playButton.threshold - currentSubscribers,
-    0
-  );
-  const progressPercentage = Math.min(
-    (currentSubscribers / playButton.threshold) * 100,
-    100
-  );
-
-  return {
-    progressLabel: `${formatCompactNumber(currentSubscribers)} / ${formatCompactNumber(playButton.threshold)}`,
-    progressPercentage,
-    progressPercentageLabel: `${progressPercentage.toFixed(1)}%`,
-    subscribersNeededLabel: getSubscribersNeededLabel(
-      playButton,
-      subscribersNeeded
-    ),
-  };
-}
-
-export function getTrackedPlayButton(
+/** @deprecated Use playButton from getPlayButtonProgress. */
+export const getTrackedPlayButton = (
   subscriberCount: number | null
-): PlayButton {
-  if (subscriberCount === null) {
-    return PLAY_BUTTONS[0];
-  }
-
-  return (
-    PLAY_BUTTONS.find((playButton) => subscriberCount < playButton.threshold) ??
-    FINAL_PLAY_BUTTON
-  );
-}
-
-function formatDailyGrowth(value: number): string {
-  const roundedValue = Math.round(value);
-
-  if (roundedValue === 0) {
-    return "0 subs/day";
-  }
-
-  const sign = roundedValue > 0 ? "+" : "";
-  return `${sign}${NUMBER_FORMATTER.format(roundedValue)} subs/day`;
-}
-
-function getGrowthRoundingExplanation(
-  gain: number,
-  dailyGrowth: number,
-  periodDays: 7 | 28
-): string | null {
-  if (Math.round(dailyGrowth) !== 0) {
-    return null;
-  }
-
-  if (gain > 0) {
-    return `${NUMBER_FORMATTER.format(gain)} subscribers gained over the last ${periodDays} days averages less than 1 subscriber per day.`;
-  }
-
-  if (gain < 0) {
-    return `${NUMBER_FORMATTER.format(Math.abs(gain))} subscribers lost over the last ${periodDays} days averages less than 1 subscriber per day.`;
-  }
-
-  return `YouTube rounds public subscriber counts, so smaller changes may not appear in the ${periodDays}-day trend.`;
-}
-
-function getSubscribersNeededLabel(
-  playButton: PlayButton,
-  subscribersNeeded: number
-): string {
-  if (subscribersNeeded > 0) {
-    return `${formatCompactNumber(subscribersNeeded)} more subscribers needed`;
-  }
-
-  if (playButton === FINAL_PLAY_BUTTON) {
-    return "This channel has already reached every tracked play button milestone";
-  }
-
-  return `This channel has already reached the ${playButton.name} milestone`;
-}
+): PlayButton => getProjectedPlayButton(subscriberCount);

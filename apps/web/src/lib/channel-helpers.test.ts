@@ -1,9 +1,9 @@
 import { describe, expect, it } from "bun:test";
 
-import type { ViewStatsChannelSnapshot } from "../utils/channel-schema";
+import type { ChannelSnapshot } from "../utils/channel-snapshot";
 import { createPrediction, PLAY_BUTTONS } from "./channel-helpers";
 
-const snapshot: ViewStatsChannelSnapshot = {
+const snapshot: ChannelSnapshot = {
   avatarUrl: null,
   capturedAt: "2026-07-21T00:05:00.000Z",
   channelName: "Example",

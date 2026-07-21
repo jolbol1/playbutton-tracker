@@ -1,30 +1,25 @@
-import type { ViewStatsChannelSnapshot } from "./channel-schema";
-
 interface ChannelSnapshotCacheOptions {
   maxEntries: number;
   now?: () => number;
   ttlMs: number;
 }
 
-interface CachedChannelSnapshot {
+interface CachedChannelSnapshot<Snapshot> {
   expiresAt: number;
-  snapshot: ViewStatsChannelSnapshot;
+  snapshot: Snapshot;
 }
 
-type ChannelSnapshotLoader = () => Promise<ViewStatsChannelSnapshot>;
+type ChannelSnapshotLoader<Snapshot> = () => Promise<Snapshot>;
 
-export const createChannelSnapshotCache = ({
+export const createChannelSnapshotCache = <Snapshot>({
   maxEntries,
   now = Date.now,
   ttlMs,
 }: ChannelSnapshotCacheOptions) => {
-  const entries = new Map<string, CachedChannelSnapshot>();
-  const pendingRequests = new Map<string, Promise<ViewStatsChannelSnapshot>>();
+  const entries = new Map<string, CachedChannelSnapshot<Snapshot>>();
+  const pendingRequests = new Map<string, Promise<Snapshot>>();
 
-  const storeSnapshot = (
-    identifier: string,
-    snapshot: ViewStatsChannelSnapshot
-  ): void => {
+  const storeSnapshot = (identifier: string, snapshot: Snapshot): void => {
     if (!entries.has(identifier) && entries.size >= maxEntries) {
       const oldestIdentifier = entries.keys().next().value;
 
@@ -42,8 +37,8 @@ export const createChannelSnapshotCache = ({
 
   const loadSnapshot = async (
     identifier: string,
-    loader: ChannelSnapshotLoader
-  ): Promise<ViewStatsChannelSnapshot> => {
+    loader: ChannelSnapshotLoader<Snapshot>
+  ): Promise<Snapshot> => {
     try {
       const snapshot = await loader();
       storeSnapshot(identifier, snapshot);
@@ -56,8 +51,8 @@ export const createChannelSnapshotCache = ({
   return {
     get: (
       identifier: string,
-      loader: ChannelSnapshotLoader
-    ): Promise<ViewStatsChannelSnapshot> => {
+      loader: ChannelSnapshotLoader<Snapshot>
+    ): Promise<Snapshot> => {
       const cachedSnapshot = entries.get(identifier);
 
       if (cachedSnapshot !== undefined && cachedSnapshot.expiresAt > now()) {
