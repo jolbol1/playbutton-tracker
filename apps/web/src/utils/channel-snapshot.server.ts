@@ -1,6 +1,7 @@
 import { env } from "@playbutton-tracker/env/server";
 import { z } from "zod";
 
+import { calculateSubscriberGain } from "./channel-history";
 import {
   type ViewStatsChannelSnapshot,
   ViewStatsError,
@@ -61,19 +62,6 @@ const getViewStatsCryptoKey = (): Promise<CryptoKey> => {
   );
 
   return viewStatsCryptoKeyPromise;
-};
-
-const calculateGain = (
-  stats: z.infer<typeof channelStatsResponseSchema>
-): number | null => {
-  const firstPoint = stats.data[0];
-  const lastPoint = stats.data.at(-1);
-
-  if (firstPoint === undefined || lastPoint === undefined) {
-    return null;
-  }
-
-  return lastPoint.subscriberCount - firstPoint.subscriberCount;
 };
 
 const parseViewStatsBody = async (response: Response): Promise<unknown> => {
@@ -241,7 +229,7 @@ export const getChannelSnapshot = async (
     channelName: metadata.data.displayName,
     handle: metadata.data.handle,
     subscriberCount: metadata.data.subscriberCount,
-    subsGained7Day: calculateGain(stats7Day),
-    subsGained28Day: calculateGain(stats28Day),
+    subsGained7Day: calculateSubscriberGain(stats7Day.data),
+    subsGained28Day: calculateSubscriberGain(stats28Day.data),
   };
 };
