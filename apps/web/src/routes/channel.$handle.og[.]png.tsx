@@ -18,6 +18,18 @@ const OG_FONT_NAME = "Inter Variable";
 
 const interFontDataPromises = new Map<string, Promise<ArrayBuffer>>();
 
+const loadInterFontData = async (fontUrl: string): Promise<ArrayBuffer> => {
+  const response = await fetch(fontUrl, {
+    signal: AbortSignal.timeout(FONT_REQUEST_TIMEOUT_MS),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to load OG font asset: ${response.status}`);
+  }
+
+  return await response.arrayBuffer();
+};
+
 const getErrorDetails = (error: unknown) => {
   if (error instanceof Error) {
     return {
@@ -30,26 +42,27 @@ const getErrorDetails = (error: unknown) => {
   return { value: error };
 };
 
-const getInterFontData = (): Promise<ArrayBuffer> => {
+const getInterFontData = async (): Promise<ArrayBuffer> => {
   const fontUrl = INTER_FONT_URL;
   const existingPromise = interFontDataPromises.get(fontUrl);
 
   if (existingPromise !== undefined) {
-    return existingPromise;
+    return await existingPromise;
   }
 
-  const fontDataPromise = fetch(fontUrl, {
-    signal: AbortSignal.timeout(FONT_REQUEST_TIMEOUT_MS),
-  }).then((response) => {
-    if (!response.ok) {
-      throw new Error(`Failed to load OG font asset: ${response.status}`);
-    }
-
-    return response.arrayBuffer();
-  });
+  const fontDataPromise = loadInterFontData(fontUrl);
 
   interFontDataPromises.set(fontUrl, fontDataPromise);
-  return fontDataPromise;
+
+  try {
+    return await fontDataPromise;
+  } catch (error) {
+    if (interFontDataPromises.get(fontUrl) === fontDataPromise) {
+      interFontDataPromises.delete(fontUrl);
+    }
+
+    throw error;
+  }
 };
 
 const getStaticOgImageResponse = (
