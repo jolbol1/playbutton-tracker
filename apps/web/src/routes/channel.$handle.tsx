@@ -239,7 +239,7 @@ function ChannelPageView({ snapshot }: ChannelPageViewProps) {
                     iconClassName="bg-[#341019]"
                     label="Daily Growth"
                     labelSuffix={
-                      prediction.showRoundedGrowthTooltip ? (
+                      prediction.growthRoundingExplanation ? (
                         <Tooltip>
                           <TooltipTrigger className="inline-flex items-center">
                             <CircleAlert
@@ -248,13 +248,7 @@ function ChannelPageView({ snapshot }: ChannelPageViewProps) {
                             />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-sm text-pretty p-4 normal-case tracking-normal">
-                            Subscriber count showing 0 for the last 7 days on a
-                            growing channel may occur because the growth
-                            hasn&apos;t yet reached the rounding threshold for
-                            that channel size. If a channel has 1.2M
-                            subscribers, YouTube will only update when it
-                            reaches 1.3M, even if thousands of new subscribers
-                            joined within those 7 days.
+                            {prediction.growthRoundingExplanation}
                           </TooltipContent>
                         </Tooltip>
                       ) : undefined

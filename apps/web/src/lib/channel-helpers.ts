@@ -11,8 +11,8 @@ export interface Prediction {
   dailyGrowthLabel: string;
   daysToGoalLabel: string;
   estimatedDateLabel: string;
+  growthRoundingExplanation: string | null;
   period: string;
-  showRoundedGrowthTooltip: boolean;
 }
 
 export interface ProgressMetrics {
@@ -83,8 +83,8 @@ export function createPrediction(
       dailyGrowthLabel: "Unavailable",
       daysToGoalLabel: "Unavailable",
       estimatedDateLabel: "Unavailable",
+      growthRoundingExplanation: null,
       period,
-      showRoundedGrowthTooltip: false,
     };
   }
 
@@ -99,9 +99,12 @@ export function createPrediction(
       dailyGrowthLabel: formatDailyGrowth(dailyGrowth),
       daysToGoalLabel: "All milestones reached",
       estimatedDateLabel: "Reached",
+      growthRoundingExplanation: getGrowthRoundingExplanation(
+        gain,
+        dailyGrowth,
+        periodDays
+      ),
       period,
-      showRoundedGrowthTooltip:
-        Math.round(dailyGrowth) === 0 && dailyGrowth <= 0,
     };
   }
 
@@ -110,9 +113,12 @@ export function createPrediction(
       dailyGrowthLabel: formatDailyGrowth(dailyGrowth),
       daysToGoalLabel: "Not Available",
       estimatedDateLabel: "Not Available",
+      growthRoundingExplanation: getGrowthRoundingExplanation(
+        gain,
+        dailyGrowth,
+        periodDays
+      ),
       period,
-      showRoundedGrowthTooltip:
-        Math.round(dailyGrowth) === 0 && dailyGrowth <= 0,
     };
   }
 
@@ -124,8 +130,12 @@ export function createPrediction(
     dailyGrowthLabel: formatDailyGrowth(dailyGrowth),
     daysToGoalLabel: `${NUMBER_FORMATTER.format(daysToGoal)} days`,
     estimatedDateLabel: DATE_FORMATTER.format(estimatedDate),
+    growthRoundingExplanation: getGrowthRoundingExplanation(
+      gain,
+      dailyGrowth,
+      periodDays
+    ),
     period,
-    showRoundedGrowthTooltip: Math.round(dailyGrowth) === 0 && dailyGrowth <= 0,
   };
 }
 
@@ -201,8 +211,33 @@ export function getTrackedPlayButton(
 
 function formatDailyGrowth(value: number): string {
   const roundedValue = Math.round(value);
+
+  if (roundedValue === 0) {
+    return "0 subs/day";
+  }
+
   const sign = roundedValue > 0 ? "+" : "";
   return `${sign}${NUMBER_FORMATTER.format(roundedValue)} subs/day`;
+}
+
+function getGrowthRoundingExplanation(
+  gain: number,
+  dailyGrowth: number,
+  periodDays: 7 | 28
+): string | null {
+  if (Math.round(dailyGrowth) !== 0) {
+    return null;
+  }
+
+  if (gain > 0) {
+    return `${NUMBER_FORMATTER.format(gain)} subscribers gained over the last ${periodDays} days averages less than 1 subscriber per day.`;
+  }
+
+  if (gain < 0) {
+    return `${NUMBER_FORMATTER.format(Math.abs(gain))} subscribers lost over the last ${periodDays} days averages less than 1 subscriber per day.`;
+  }
+
+  return `YouTube rounds public subscriber counts, so smaller changes may not appear in the ${periodDays}-day trend.`;
 }
 
 function getSubscribersNeededLabel(
