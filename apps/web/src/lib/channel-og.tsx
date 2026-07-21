@@ -6,6 +6,7 @@ import {
   getTrackedPlayButton,
 } from "@/lib/channel-helpers";
 import type { ViewStatsChannelSnapshot } from "@/utils/channel-schema";
+import type { ChannelSnapshot } from "@/utils/channel-snapshot";
 
 const SITE_URL = "https://www.playbuttontracker.com";
 const NUMBER_FORMATTER = new Intl.NumberFormat("en-US");
@@ -43,7 +44,7 @@ export function getChannelOgImageUrl(handle: string, origin?: string): string {
 }
 
 export function getChannelSeoMeta(
-  snapshot: ViewStatsChannelSnapshot,
+  snapshot: ChannelSnapshot,
   origin?: string
 ): {
   description: string;
@@ -222,7 +223,7 @@ function PredictionCard({
   );
 }
 
-function getChannelSeoDescription(snapshot: ViewStatsChannelSnapshot): string {
+function getChannelSeoDescription(snapshot: ChannelSnapshot): string {
   const trackedPlayButton = getTrackedPlayButton(snapshot.subscriberCount);
 
   if (snapshot.subscriberCount === null) {

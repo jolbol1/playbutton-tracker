@@ -1,9 +1,6 @@
 import { describe, expect, it } from "bun:test";
 
-import {
-  extractChannelIdentifier,
-  normalizeViewStatsIdentifier,
-} from "./channel-identifier";
+import { extractChannelIdentifier } from "./channel-identifier";
 
 describe("extractChannelIdentifier", () => {
   it("extracts a channel ID from a YouTube channel URL", () => {
@@ -19,18 +16,5 @@ describe("extractChannelIdentifier", () => {
     expect(
       extractChannelIdentifier("https://youtube.com/@betterstack/videos")
     ).toBe("betterstack");
-  });
-});
-
-describe("normalizeViewStatsIdentifier", () => {
-  it("preserves channel IDs", () => {
-    expect(normalizeViewStatsIdentifier("UCkVfrGwV-iG9bSsgCbrNPxQ")).toBe(
-      "UCkVfrGwV-iG9bSsgCbrNPxQ"
-    );
-  });
-
-  it("prefixes handles for ViewStats", () => {
-    expect(normalizeViewStatsIdentifier("betterstack")).toBe("@betterstack");
-    expect(normalizeViewStatsIdentifier("@betterstack")).toBe("@betterstack");
   });
 });

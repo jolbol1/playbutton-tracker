@@ -34,11 +34,3 @@ export const extractChannelIdentifier = (value: string): string | null => {
     return null;
   }
 };
-
-export const normalizeViewStatsIdentifier = (identifier: string): string => {
-  if (identifier.startsWith("@") || CHANNEL_ID_REGEX.test(identifier)) {
-    return identifier;
-  }
-
-  return `@${identifier}`;
-};
