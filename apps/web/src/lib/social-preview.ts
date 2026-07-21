@@ -11,9 +11,14 @@ const DEFAULT_DESCRIPTION =
   "Track YouTube channel subscriber progress toward creator awards, estimate milestone timelines, and view recent growth trends.";
 const DEFAULT_IMAGE_ALT = "Play Button Tracker social preview";
 
-type SocialPreviewRequest =
+export type SocialPreviewRequest =
   | { page: "channel"; channel: ChannelSnapshot }
   | { page: "default" };
+
+export interface SocialPreviewOpenGraphRequest {
+  handle: string;
+  requestUrl: string;
+}
 
 interface SocialPreviewLink {
   href: string;
@@ -28,6 +33,11 @@ type SocialPreviewMeta =
 export interface SocialPreviewMetadata {
   links: SocialPreviewLink[];
   meta: SocialPreviewMeta[];
+}
+
+export interface SocialPreview {
+  getMetadata: (request: SocialPreviewRequest) => SocialPreviewMetadata;
+  getOpenGraph: (request: SocialPreviewOpenGraphRequest) => Promise<Response>;
 }
 
 interface SocialPreviewContent {

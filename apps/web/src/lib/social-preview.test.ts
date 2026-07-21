@@ -1,6 +1,29 @@
-import { describe, expect, it } from "bun:test";
-
+import { describe, expect, it, mock } from "bun:test";
+import { file } from "bun";
 import { getSocialPreviewMetadata } from "./social-preview";
+import { createSocialPreview } from "./social-preview-open-graph";
+
+const OPEN_GRAPH_IMAGE_HEIGHT = 630;
+const OPEN_GRAPH_IMAGE_WIDTH = 1200;
+const PNG_HEIGHT_BYTE_OFFSET = 20;
+const PNG_WIDTH_BYTE_OFFSET = 16;
+const TEMPORARY_REDIRECT_STATUS = 307;
+const TEST_FONT_URL = new URL(
+  "../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2",
+  import.meta.url
+);
+const TEST_WASM_URL = new URL(
+  "../../node_modules/@takumi-rs/wasm/pkg/takumi_wasm_bg.wasm",
+  import.meta.url
+);
+const testWasmModule = await WebAssembly.compile(
+  await file(TEST_WASM_URL).arrayBuffer()
+);
+
+mock.module("@takumi-rs/wasm/next", () => ({ default: testWasmModule }));
+
+const loadTestFont = async (): Promise<ArrayBuffer> =>
+  await file(TEST_FONT_URL).arrayBuffer();
 
 const ordinaryChannel = {
   avatarUrl: null,
@@ -178,6 +201,145 @@ describe("getSocialPreviewMetadata", () => {
     expect(readMeta(metadata.meta, "twitter:image:alt")).toBe(
       readMeta(metadata.meta, "og:image:alt")
     );
+  });
+});
+
+describe("Social Preview Open Graph GET", () => {
+  it("delivers a cached 1200 by 630 PNG for a Channel Snapshot", async () => {
+    const socialPreview = createSocialPreview({
+      getChannelSnapshot: async () => ({
+        snapshot: ordinaryChannel,
+        status: "success",
+      }),
+      loadFont: loadTestFont,
+      now: () => 100,
+      reportDiagnostic: () => undefined,
+    });
+
+    const response = await socialPreview.getOpenGraph({
+      handle: "betterstack",
+      requestUrl:
+        "https://www.playbuttontracker.com/channel/betterstack/og.png",
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Content-Type")).toBe("image/png");
+    expect(response.headers.get("Cache-Control")).toBe(
+      "public, max-age=900, s-maxage=900, stale-while-revalidate=86400"
+    );
+
+    const image = new DataView(await response.arrayBuffer());
+    expect(image.getUint32(PNG_WIDTH_BYTE_OFFSET)).toBe(OPEN_GRAPH_IMAGE_WIDTH);
+    expect(image.getUint32(PNG_HEIGHT_BYTE_OFFSET)).toBe(
+      OPEN_GRAPH_IMAGE_HEIGHT
+    );
+  });
+
+  it("classifies a missing channel and redirects to the static preview", async () => {
+    const diagnostics: unknown[] = [];
+    let fontLoadCount = 0;
+    const socialPreview = createSocialPreview({
+      getChannelSnapshot: async () => ({
+        reason: "not-found",
+        status: "failure",
+      }),
+      loadFont: () => {
+        fontLoadCount += 1;
+        return Promise.resolve(new ArrayBuffer(0));
+      },
+      now: () => 125,
+      reportDiagnostic: (diagnostic) => diagnostics.push(diagnostic),
+    });
+
+    const response = await socialPreview.getOpenGraph({
+      handle: "missing-channel",
+      requestUrl:
+        "https://www.playbuttontracker.com/channel/missing-channel/og.png",
+    });
+
+    expect(response.status).toBe(TEMPORARY_REDIRECT_STATUS);
+    expect(response.headers.get("Location")).toBe(
+      "https://www.playbuttontracker.com/og.png"
+    );
+    expect(fontLoadCount).toBe(0);
+    expect(diagnostics).toEqual([
+      {
+        cause: { reason: "not-found", status: "failure" },
+        fallback: "/og.png",
+        fontUrl:
+          "https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.2.8/files/inter-latin-wght-normal.woff2",
+        handle: "missing-channel",
+        ok: false,
+        reason: "channel_not_found",
+        requestUrl:
+          "https://www.playbuttontracker.com/channel/missing-channel/og.png",
+        tookMs: 0,
+      },
+    ]);
+  });
+
+  it("classifies a general snapshot failure and redirects to the static preview", async () => {
+    const diagnostics: Array<{ reason: string }> = [];
+    const socialPreview = createSocialPreview({
+      getChannelSnapshot: async () => ({
+        reason: "timeout",
+        status: "failure",
+      }),
+      loadFont: async () => new ArrayBuffer(0),
+      now: () => 200,
+      reportDiagnostic: (diagnostic) => diagnostics.push(diagnostic),
+    });
+
+    const response = await socialPreview.getOpenGraph({
+      handle: "slow-channel",
+      requestUrl:
+        "https://www.playbuttontracker.com/channel/slow-channel/og.png",
+    });
+
+    expect(response.status).toBe(TEMPORARY_REDIRECT_STATUS);
+    expect(response.headers.get("Location")).toBe(
+      "https://www.playbuttontracker.com/og.png"
+    );
+    expect(diagnostics.map(({ reason }) => reason)).toEqual([
+      "generation_failed",
+    ]);
+  });
+
+  it("evicts a rejected font promise so a later request can retry", async () => {
+    const diagnostics: Array<{ reason: string }> = [];
+    let fontLoadCount = 0;
+    const socialPreview = createSocialPreview({
+      getChannelSnapshot: async () => ({
+        snapshot: ordinaryChannel,
+        status: "success",
+      }),
+      loadFont: async () => {
+        fontLoadCount += 1;
+
+        if (fontLoadCount === 1) {
+          throw new Error("Font CDN unavailable");
+        }
+
+        return await loadTestFont();
+      },
+      now: () => 300,
+      reportDiagnostic: (diagnostic) => diagnostics.push(diagnostic),
+    });
+    const request = {
+      handle: "betterstack",
+      requestUrl:
+        "https://www.playbuttontracker.com/channel/betterstack/og.png",
+    };
+
+    const failedResponse = await socialPreview.getOpenGraph(request);
+    const retriedResponse = await socialPreview.getOpenGraph(request);
+
+    expect(failedResponse.status).toBe(TEMPORARY_REDIRECT_STATUS);
+    expect(retriedResponse.status).toBe(200);
+    expect(fontLoadCount).toBe(2);
+    expect(diagnostics.map(({ reason }) => reason)).toEqual([
+      "generation_failed",
+    ]);
   });
 });
 
