@@ -1,8 +1,3 @@
-import type { ChannelSnapshot } from "./channel-snapshot";
-
-/** @deprecated Use the provider-neutral ChannelSnapshot type. */
-export type ViewStatsChannelSnapshot = ChannelSnapshot;
-
 export class ViewStatsError extends Error {
   readonly details?: unknown;
   readonly status: number;

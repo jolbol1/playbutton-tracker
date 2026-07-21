@@ -1,19 +1,15 @@
-import type { ViewStatsChannelSnapshot } from "../utils/channel-schema";
+import type { ChannelSnapshot } from "../utils/channel-snapshot";
 import {
   formatCompactNumber as formatProjectedCompactNumber,
-  formatPlayButtonMilestone as formatProjectedMilestone,
   getTrackedPlayButton as getProjectedPlayButton,
-  getProgressMetrics as getProjectedProgressMetrics,
   PLAY_BUTTONS as PLAY_BUTTON_CATALOG,
   type PlayButton as ProgressPlayButton,
   type Prediction as ProgressPrediction,
-  type ProgressMetrics as ProgressProgressMetrics,
   createPrediction as projectPrediction,
 } from "./play-button-progress";
 
 export type PlayButton = ProgressPlayButton;
 export type Prediction = Omit<ProgressPrediction, "periodDays" | "state">;
-export type ProgressMetrics = ProgressProgressMetrics;
 
 export const PLAY_BUTTONS = PLAY_BUTTON_CATALOG satisfies readonly PlayButton[];
 
@@ -21,7 +17,7 @@ const WHITESPACE_REGEX = /\s+/;
 
 /** @deprecated Use getPlayButtonProgress for new callers. */
 export const createPrediction = (
-  snapshot: ViewStatsChannelSnapshot,
+  snapshot: ChannelSnapshot,
   playButton: PlayButton,
   periodDays: 7 | 28,
   period: string
@@ -30,10 +26,6 @@ export const createPrediction = (
 /** @deprecated Use labels from getPlayButtonProgress for new callers. */
 export const formatCompactNumber = (value: number): string =>
   formatProjectedCompactNumber(value);
-
-/** @deprecated Use playButton.milestoneLabel from getPlayButtonProgress. */
-export const formatPlayButtonMilestone = (playButton: PlayButton): string =>
-  formatProjectedMilestone(playButton);
 
 export const getInitials = (value: string): string => {
   const letters = value
@@ -44,12 +36,6 @@ export const getInitials = (value: string): string => {
 
   return letters.join("") || "?";
 };
-
-/** @deprecated Use current and remaining from getPlayButtonProgress. */
-export const getProgressMetrics = (
-  snapshot: ViewStatsChannelSnapshot,
-  playButton: PlayButton
-): ProgressMetrics => getProjectedProgressMetrics(snapshot, playButton);
 
 /** @deprecated Use playButton from getPlayButtonProgress. */
 export const getTrackedPlayButton = (

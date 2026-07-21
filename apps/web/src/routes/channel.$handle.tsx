@@ -14,8 +14,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getInitials } from "@/lib/channel-helpers";
-import { CHANNEL_OG_IMAGE_ALT, getChannelSeoMeta } from "@/lib/channel-og";
 import { getPlayButtonProgress } from "@/lib/play-button-progress";
+import { getSocialPreviewMetadata } from "@/lib/social-preview";
 import { cn } from "@/lib/utils";
 import type { ChannelSnapshot } from "@/utils/channel-snapshot";
 import { getChannelSnapshotFn } from "../utils/channel-snapshot.functions";
@@ -28,70 +28,10 @@ export const Route = createFileRoute("/channel/$handle")({
       return {};
     }
 
-    const { description, imageUrl, pageUrl, title } =
-      getChannelSeoMeta(loaderData);
-
-    return {
-      links: [
-        {
-          href: pageUrl,
-          rel: "canonical",
-        },
-      ],
-      meta: [
-        {
-          title,
-        },
-        {
-          content: description,
-          name: "description",
-        },
-        {
-          content: "website",
-          property: "og:type",
-        },
-        {
-          content: title,
-          property: "og:title",
-        },
-        {
-          content: description,
-          property: "og:description",
-        },
-        {
-          content: imageUrl,
-          property: "og:image",
-        },
-        {
-          content: CHANNEL_OG_IMAGE_ALT,
-          property: "og:image:alt",
-        },
-        {
-          content: pageUrl,
-          property: "og:url",
-        },
-        {
-          content: "summary_large_image",
-          name: "twitter:card",
-        },
-        {
-          content: title,
-          name: "twitter:title",
-        },
-        {
-          content: description,
-          name: "twitter:description",
-        },
-        {
-          content: imageUrl,
-          name: "twitter:image",
-        },
-        {
-          content: CHANNEL_OG_IMAGE_ALT,
-          name: "twitter:image:alt",
-        },
-      ],
-    };
+    return getSocialPreviewMetadata({
+      channel: loaderData,
+      page: "channel",
+    });
   },
   component: ChannelPage,
   notFoundComponent: ChannelNotFound,

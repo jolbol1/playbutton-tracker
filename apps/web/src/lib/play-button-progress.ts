@@ -40,6 +40,7 @@ export interface PlayButtonProgressProjection {
   remaining: {
     label: string;
     subscriberCount: number | null;
+    subscriberCountLabel: string | null;
   };
   state: "all-milestones-reached" | "in-progress" | "unavailable";
 }
@@ -121,6 +122,7 @@ export const getPlayButtonProgress = (
       remaining: {
         label: progressMetrics.subscribersNeededLabel,
         subscriberCount: null,
+        subscriberCountLabel: null,
       },
       state: "unavailable",
     };
@@ -145,6 +147,7 @@ export const getPlayButtonProgress = (
     remaining: {
       label: progressMetrics.subscribersNeededLabel,
       subscriberCount: remainingSubscriberCount,
+      subscriberCountLabel: formatCompactNumber(remainingSubscriberCount),
     },
     state: hasReachedAllMilestones ? "all-milestones-reached" : "in-progress",
   };
@@ -208,17 +211,7 @@ export const createPrediction = (
 export const formatCompactNumber = (value: number): string =>
   COMPACT_NUMBER_FORMATTER.format(value);
 
-/** @deprecated Use playButton.milestoneLabel from getPlayButtonProgress. */
-export const formatPlayButtonMilestone = (playButton: PlayButton): string => {
-  if (playButton.variant === "custom") {
-    return `${NUMBER_FORMATTER.format(playButton.threshold)} subscriber milestone (Ruby-style custom award)`;
-  }
-
-  return `${NUMBER_FORMATTER.format(playButton.threshold)} subscriber milestone`;
-};
-
-/** @deprecated Use current and remaining from getPlayButtonProgress. */
-export const getProgressMetrics = (
+const getProgressMetrics = (
   snapshot: ChannelSnapshot,
   playButton: PlayButton
 ): ProgressMetrics => {
