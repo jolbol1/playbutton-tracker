@@ -1,18 +1,7 @@
 import { env } from "@playbutton-tracker/env/server";
-import { ViewStatsError } from "./channel-schema";
-import {
-  type ChannelSnapshot,
-  type ChannelSnapshotFailure,
-  createGetChannelSnapshot,
-} from "./channel-snapshot";
+import { createGetChannelSnapshot } from "./channel-snapshot";
 import { createViewStatsChannelSnapshotSource } from "./viewstats-channel-snapshot-source.server";
 
-const HTTP_STATUS = {
-  BAD_GATEWAY: 502,
-  BAD_REQUEST: 400,
-  GATEWAY_TIMEOUT: 504,
-  NOT_FOUND: 404,
-} as const;
 const MIN_SIGNED_BYTE = -128;
 const MAX_UNSIGNED_BYTE = 255;
 
@@ -56,38 +45,3 @@ export const getChannelSnapshot = createGetChannelSnapshot({
   },
   source: viewStatsSource,
 });
-
-const getLegacyFailureStatus = (
-  reason: ChannelSnapshotFailure["reason"]
-): number => {
-  if (reason === "invalid-identifier") {
-    return HTTP_STATUS.BAD_REQUEST;
-  }
-
-  if (reason === "not-found") {
-    return HTTP_STATUS.NOT_FOUND;
-  }
-
-  if (reason === "timeout") {
-    return HTTP_STATUS.GATEWAY_TIMEOUT;
-  }
-
-  return HTTP_STATUS.BAD_GATEWAY;
-};
-
-/** @deprecated Use the provider-neutral getChannelSnapshot outcome. */
-export const getLegacyViewStatsChannelSnapshot = async (
-  identifier: string
-): Promise<ChannelSnapshot> => {
-  const outcome = await getChannelSnapshot(identifier);
-
-  if (outcome.status === "success") {
-    return outcome.snapshot;
-  }
-
-  throw new ViewStatsError(
-    "ViewStats channel snapshot request failed",
-    getLegacyFailureStatus(outcome.reason),
-    { reason: outcome.reason }
-  );
-};

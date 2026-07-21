@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
-import { getInitials } from "@/lib/channel-helpers";
 import { normalizeChannelHandle } from "@/lib/channel-identifier";
+import { getChannelInitials } from "@/lib/channel-initials";
 import type { PlayButtonProgressProjection } from "@/lib/play-button-progress";
 import type { ChannelSnapshot } from "@/utils/channel-snapshot";
 
@@ -57,7 +57,7 @@ export function ChannelOgImage({
           <div style={styles.panelHeader}>
             <div style={styles.profileRow}>
               <Avatar
-                fallback={getInitials(snapshot.channelName)}
+                fallback={getChannelInitials(snapshot.channelName)}
                 src={snapshot.avatarUrl}
               />
               <div style={styles.profileText}>

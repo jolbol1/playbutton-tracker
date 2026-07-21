@@ -1,6 +1,6 @@
 import type { ChannelSnapshot } from "../utils/channel-snapshot";
 
-export interface PlayButton {
+interface PlayButton {
   buttonColor: string;
   name: string;
   threshold: number;
@@ -11,7 +11,7 @@ interface ProjectedPlayButton extends PlayButton {
   milestoneLabel: string;
 }
 
-export interface Prediction {
+interface Prediction {
   dailyGrowthLabel: string;
   daysToGoalLabel: string;
   estimatedDateLabel: string;
@@ -21,7 +21,7 @@ export interface Prediction {
   state: "all-milestones-reached" | "not-growing" | "projected" | "unavailable";
 }
 
-export interface ProgressMetrics {
+interface ProgressMetrics {
   progressLabel: string;
   progressPercentage: number;
   progressPercentageLabel: string;
@@ -45,7 +45,7 @@ export interface PlayButtonProgressProjection {
   state: "all-milestones-reached" | "in-progress" | "unavailable";
 }
 
-export const PLAY_BUTTONS = [
+const PLAY_BUTTONS = [
   {
     buttonColor: "#AEAFB3",
     milestoneLabel: "100,000 subscriber milestone",
@@ -175,8 +175,7 @@ const createProgressPredictions = (
   ];
 };
 
-/** @deprecated Use getPlayButtonProgress for new callers. */
-export const createPrediction = (
+const createPrediction = (
   snapshot: ChannelSnapshot,
   playButton: PlayButton,
   periodDays: 7 | 28,
@@ -207,8 +206,7 @@ export const createPrediction = (
   });
 };
 
-/** @deprecated Use labels from getPlayButtonProgress for new callers. */
-export const formatCompactNumber = (value: number): string =>
+const formatCompactNumber = (value: number): string =>
   COMPACT_NUMBER_FORMATTER.format(value);
 
 const getProgressMetrics = (
@@ -246,8 +244,7 @@ const getProgressMetrics = (
   };
 };
 
-/** @deprecated Use playButton from getPlayButtonProgress. */
-export const getTrackedPlayButton = (
+const getTrackedPlayButton = (
   subscriberCount: number | null
 ): ProjectedPlayButton => {
   if (subscriberCount === null) {

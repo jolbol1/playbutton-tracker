@@ -13,7 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getInitials } from "@/lib/channel-helpers";
+import { getChannelInitials } from "@/lib/channel-initials";
 import { getPlayButtonProgress } from "@/lib/play-button-progress";
 import { getSocialPreviewMetadata } from "@/lib/social-preview";
 import { cn } from "@/lib/utils";
@@ -63,7 +63,7 @@ function ChannelPageView({ snapshot }: ChannelPageViewProps) {
                 src={snapshot.avatarUrl ?? undefined}
               />
               <AvatarFallback className="font-semibold text-lg">
-                {getInitials(snapshot.channelName)}
+                {getChannelInitials(snapshot.channelName)}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
