@@ -4,12 +4,16 @@ import { z } from "zod";
 import { normalizeViewStatsIdentifier } from "../lib/channel-identifier";
 import { calculateSubscriberGain } from "./channel-history";
 import {
+  getChannelSnapshotInputSchema,
   type ViewStatsChannelSnapshot,
   ViewStatsError,
 } from "./channel-schema";
+import { createChannelSnapshotCache } from "./channel-snapshot-cache";
 
 const JSON_CONTENT_TYPE = "application/json";
 const LOG_PAYLOAD_PREVIEW_LIMIT = 1000;
+const SNAPSHOT_CACHE_MAX_ENTRIES = 250;
+const SNAPSHOT_CACHE_TTL_MS = 5 * 60 * 1000;
 
 const channelMetadataResponseSchema = z.object({
   data: z.object({
@@ -48,6 +52,11 @@ const VIEWSTATS_IV = extractSignedBytes(env.VIEWSTATS_IV_SOURCE);
 const VIEWSTATS_KEY_BYTES = extractSignedBytes(env.VIEWSTATS_KEY_SOURCE);
 
 let viewStatsCryptoKeyPromise: Promise<CryptoKey> | undefined;
+
+const channelSnapshotCache = createChannelSnapshotCache({
+  maxEntries: SNAPSHOT_CACHE_MAX_ENTRIES,
+  ttlMs: SNAPSHOT_CACHE_TTL_MS,
+});
 
 const getViewStatsCryptoKey = (): Promise<CryptoKey> => {
   viewStatsCryptoKeyPromise ??= crypto.subtle.importKey(
@@ -182,19 +191,18 @@ const fetchFromViewStats = async <T>(
   }
 };
 
-export const getChannelSnapshot = async (
-  handleInput: string
+const fetchChannelSnapshot = async (
+  normalizedIdentifier: string
 ): Promise<ViewStatsChannelSnapshot> => {
-  const normalizedHandle = normalizeViewStatsIdentifier(handleInput);
-  const encodedHandle = encodeURIComponent(normalizedHandle);
+  const encodedIdentifier = encodeURIComponent(normalizedIdentifier);
 
-  const [metadata, stats7Day, stats28Day] = await Promise.all([
+  const metadata = await fetchFromViewStats(
+    `/channels/${encodedIdentifier}`,
+    channelMetadataResponseSchema
+  );
+  const [stats7Day, stats28Day] = await Promise.all([
     fetchFromViewStats(
-      `/channels/${encodedHandle}`,
-      channelMetadataResponseSchema
-    ),
-    fetchFromViewStats(
-      `/channels/${encodedHandle}/stats`,
+      `/channels/${encodedIdentifier}/stats`,
       channelStatsResponseSchema,
       {
         groupBy: "daily",
@@ -207,7 +215,7 @@ export const getChannelSnapshot = async (
       }
     ),
     fetchFromViewStats(
-      `/channels/${encodedHandle}/stats`,
+      `/channels/${encodedIdentifier}/stats`,
       channelStatsResponseSchema,
       {
         groupBy: "daily",
@@ -230,4 +238,16 @@ export const getChannelSnapshot = async (
     subsGained7Day: calculateSubscriberGain(stats7Day.data),
     subsGained28Day: calculateSubscriberGain(stats28Day.data),
   };
+};
+
+export const getChannelSnapshot = (
+  handleInput: string
+): Promise<ViewStatsChannelSnapshot> => {
+  const validatedHandle =
+    getChannelSnapshotInputSchema.shape.handle.parse(handleInput);
+  const normalizedIdentifier = normalizeViewStatsIdentifier(validatedHandle);
+
+  return channelSnapshotCache.get(normalizedIdentifier, () =>
+    fetchChannelSnapshot(normalizedIdentifier)
+  );
 };

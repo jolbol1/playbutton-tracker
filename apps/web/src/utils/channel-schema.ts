@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const getChannelSnapshotInputSchema = z.object({
-  handle: z.string().trim().min(1),
+  handle: z.string().trim().min(1).max(100),
 });
 
 export interface ViewStatsChannelSnapshot {
