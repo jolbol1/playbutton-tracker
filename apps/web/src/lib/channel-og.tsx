@@ -6,9 +6,7 @@ import {
   getTrackedPlayButton,
 } from "@/lib/channel-helpers";
 import type { ViewStatsChannelSnapshot } from "@/utils/channel-schema";
-import type { ChannelSnapshot } from "@/utils/channel-snapshot";
 
-const SITE_URL = "https://www.playbuttontracker.com";
 const NUMBER_FORMATTER = new Intl.NumberFormat("en-US");
 const LEADING_AT_REGEX = /^@+/;
 
@@ -23,45 +21,11 @@ const COLORS = {
   muted: "#a1a1aa",
 } as const;
 
-export const CHANNEL_OG_IMAGE_ALT = "Play Button Tracker channel share preview";
 export const CHANNEL_OG_IMAGE_CONTENT_TYPE = "image/png";
 export const CHANNEL_OG_IMAGE_SIZE = {
   width: 1200,
   height: 630,
 } as const;
-
-export function getDefaultOgImageUrl(origin?: string): string {
-  return `${getBaseUrl(origin)}/og.png`;
-}
-
-export function getChannelPageUrl(handle: string, origin?: string): string {
-  const normalizedHandle = normalizeHandle(handle);
-  return `${getBaseUrl(origin)}/channel/${encodeURIComponent(normalizedHandle)}`;
-}
-
-export function getChannelOgImageUrl(handle: string, origin?: string): string {
-  return `${getChannelPageUrl(handle, origin)}/og.png`;
-}
-
-export function getChannelSeoMeta(
-  snapshot: ChannelSnapshot,
-  origin?: string
-): {
-  description: string;
-  imageUrl: string;
-  pageUrl: string;
-  title: string;
-} {
-  const normalizedHandle = normalizeHandle(snapshot.handle);
-  const trackedPlayButton = getTrackedPlayButton(snapshot.subscriberCount);
-
-  return {
-    description: getChannelSeoDescription(snapshot),
-    imageUrl: getChannelOgImageUrl(normalizedHandle, origin),
-    pageUrl: getChannelPageUrl(normalizedHandle, origin),
-    title: `${snapshot.channelName} (@${normalizedHandle}) | ${trackedPlayButton.name} Progress`,
-  };
-}
 
 export function ChannelOgImage({
   snapshot,
@@ -223,46 +187,8 @@ function PredictionCard({
   );
 }
 
-function getChannelSeoDescription(snapshot: ChannelSnapshot): string {
-  const trackedPlayButton = getTrackedPlayButton(snapshot.subscriberCount);
-
-  if (snapshot.subscriberCount === null) {
-    return `Track ${snapshot.channelName} (@${normalizeHandle(
-      snapshot.handle
-    )}) on Play Button Tracker and see progress toward the ${
-      trackedPlayButton.name
-    }.`;
-  }
-
-  const remainingSubscribers = Math.max(
-    trackedPlayButton.threshold - snapshot.subscriberCount,
-    0
-  );
-
-  if (
-    trackedPlayButton.variant === "red-diamond" &&
-    remainingSubscribers === 0
-  ) {
-    return `${snapshot.channelName} (@${normalizeHandle(
-      snapshot.handle
-    )}) has reached every tracked play button milestone on Play Button Tracker.`;
-  }
-
-  return `${snapshot.channelName} (@${normalizeHandle(
-    snapshot.handle
-  )}) has ${formatCompactNumber(
-    snapshot.subscriberCount
-  )} subscribers and needs ${formatCompactNumber(
-    remainingSubscribers
-  )} more for the ${trackedPlayButton.name}.`;
-}
-
 function normalizeHandle(handle: string): string {
   return handle.replace(LEADING_AT_REGEX, "").trim().toLowerCase();
-}
-
-function getBaseUrl(_origin?: string): string {
-  return SITE_URL;
 }
 
 const styles = {

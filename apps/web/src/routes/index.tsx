@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { extractChannelIdentifier } from "@/lib/channel-identifier";
+import { getSocialPreviewMetadata } from "@/lib/social-preview";
 
 export const Route = createFileRoute("/")({
   component: HomeComponent,
+  head: () => getSocialPreviewMetadata({ page: "default" }),
 });
 
 function HomeComponent() {
