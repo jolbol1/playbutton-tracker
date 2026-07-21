@@ -1,11 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
-import {
-  createPrediction,
-  formatCompactNumber,
-  getInitials,
-  getTrackedPlayButton,
-} from "@/lib/channel-helpers";
+import { getInitials } from "@/lib/channel-helpers";
 import { normalizeChannelHandle } from "@/lib/channel-identifier";
+import type { PlayButtonProgressProjection } from "@/lib/play-button-progress";
 import type { ChannelSnapshot } from "@/utils/channel-snapshot";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("en-US");
@@ -21,30 +17,19 @@ const COLORS = {
   muted: "#a1a1aa",
 } as const;
 
-export const CHANNEL_OG_IMAGE_CONTENT_TYPE = "image/png";
-export const CHANNEL_OG_IMAGE_SIZE = {
-  width: 1200,
-  height: 630,
-} as const;
-
-export function ChannelOgImage({ snapshot }: { snapshot: ChannelSnapshot }) {
+export function ChannelOgImage({
+  progress,
+  snapshot,
+}: {
+  progress: PlayButtonProgressProjection;
+  snapshot: ChannelSnapshot;
+}) {
   const normalizedHandle = normalizeChannelHandle(snapshot.handle);
-  const trackedPlayButton = getTrackedPlayButton(snapshot.subscriberCount);
+  const trackedPlayButton = progress.playButton;
   const currentSubscribers = snapshot.subscriberCount;
-  const remainingSubscribers =
-    currentSubscribers === null
-      ? null
-      : Math.max(trackedPlayButton.threshold - currentSubscribers, 0);
-  const hasReachedAllMilestones =
-    trackedPlayButton.variant === "red-diamond" && remainingSubscribers === 0;
-  const progressPercentage =
-    currentSubscribers === null
-      ? 0
-      : Math.min((currentSubscribers / trackedPlayButton.threshold) * 100, 100);
-  const predictions = [
-    createPrediction(snapshot, trackedPlayButton, 7, "7 day trend"),
-    createPrediction(snapshot, trackedPlayButton, 28, "28 day trend"),
-  ];
+  const remainingSubscribers = progress.remaining.subscriberCount;
+  const hasReachedAllMilestones = progress.state === "all-milestones-reached";
+  const predictions = progress.predictions;
 
   const subscriberCountLabel =
     currentSubscribers === null
@@ -59,10 +44,8 @@ export function ChannelOgImage({ snapshot }: { snapshot: ChannelSnapshot }) {
     heroSubtitle =
       "This channel has already reached the final tracked milestone.";
   } else if (remainingSubscribers !== null) {
-    heroTitle = `${formatCompactNumber(remainingSubscribers)} subscribers to ${
-      trackedPlayButton.name
-    }`;
-    heroSubtitle = `Currently ${progressPercentage.toFixed(1)}% of the way to ${NUMBER_FORMATTER.format(
+    heroTitle = `${progress.remaining.subscriberCountLabel} subscribers to ${trackedPlayButton.name}`;
+    heroSubtitle = `Currently ${progress.current.progressPercentageLabel} of the way to ${NUMBER_FORMATTER.format(
       trackedPlayButton.threshold
     )}.`;
   }
@@ -115,7 +98,7 @@ export function ChannelOgImage({ snapshot }: { snapshot: ChannelSnapshot }) {
             return (
               <PredictionCard
                 key={prediction.period}
-                label={prediction.period}
+                label={`${prediction.periodDays} day trend`}
                 primaryValue={prediction.dailyGrowthLabel}
                 secondaryValue={prediction.daysToGoalLabel}
                 tertiaryValue={prediction.estimatedDateLabel}
