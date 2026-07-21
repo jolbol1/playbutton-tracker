@@ -13,6 +13,7 @@ const CACHE_CONTROL_HEADER =
   "public, max-age=900, s-maxage=900, stale-while-revalidate=86400";
 const INTER_FONT_URL =
   "https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5.2.8/files/inter-latin-wght-normal.woff2";
+const FONT_REQUEST_TIMEOUT_MS = 10_000;
 const OG_FONT_NAME = "Inter Variable";
 
 const interFontDataPromises = new Map<string, Promise<ArrayBuffer>>();
@@ -37,7 +38,9 @@ const getInterFontData = (): Promise<ArrayBuffer> => {
     return existingPromise;
   }
 
-  const fontDataPromise = fetch(fontUrl).then((response) => {
+  const fontDataPromise = fetch(fontUrl, {
+    signal: AbortSignal.timeout(FONT_REQUEST_TIMEOUT_MS),
+  }).then((response) => {
     if (!response.ok) {
       throw new Error(`Failed to load OG font asset: ${response.status}`);
     }

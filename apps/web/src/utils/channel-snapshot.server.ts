@@ -14,6 +14,7 @@ const JSON_CONTENT_TYPE = "application/json";
 const LOG_PAYLOAD_PREVIEW_LIMIT = 1000;
 const SNAPSHOT_CACHE_MAX_ENTRIES = 250;
 const SNAPSHOT_CACHE_TTL_MS = 5 * 60 * 1000;
+const VIEWSTATS_REQUEST_TIMEOUT_MS = 10_000;
 
 const channelMetadataResponseSchema = z.object({
   data: z.object({
@@ -141,6 +142,7 @@ const fetchFromViewStats = async <T>(
       "sec-ch-ua-mobile": "?0",
       "sec-ch-ua-platform": '"macOS"',
     },
+    signal: AbortSignal.timeout(VIEWSTATS_REQUEST_TIMEOUT_MS),
   });
 
   let payload: unknown;
