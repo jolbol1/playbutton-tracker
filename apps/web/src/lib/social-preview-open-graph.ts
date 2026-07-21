@@ -23,6 +23,12 @@ const OPEN_GRAPH_IMAGE_SIZE = {
   height: 630,
   width: 1200,
 } as const;
+const OPEN_GRAPH_IMAGE_HEADERS = {
+  "Cache-Control": OPEN_GRAPH_CACHE_CONTROL,
+  "Content-Type": OPEN_GRAPH_IMAGE_CONTENT_TYPE,
+  "X-Image-Height": `${OPEN_GRAPH_IMAGE_SIZE.height}`,
+  "X-Image-Width": `${OPEN_GRAPH_IMAGE_SIZE.width}`,
+} as const;
 const TEMPORARY_REDIRECT_STATUS = 307;
 
 export interface SocialPreviewOpenGraphDiagnostic {
@@ -42,6 +48,10 @@ interface CreateSocialPreviewOptions {
   now: () => number;
   reportDiagnostic: (diagnostic: SocialPreviewOpenGraphDiagnostic) => void;
 }
+
+type OpenGraphSnapshotResolution =
+  | { response: Response; status: "failure" }
+  | { snapshot: ChannelSnapshot; status: "success" };
 
 export const createSocialPreview = ({
   getChannelSnapshot,
@@ -96,48 +106,95 @@ export const createSocialPreview = ({
     return createStaticOpenGraphRedirectResponse(requestUrl);
   };
 
-  const getOpenGraph = async ({
-    handle,
-    requestUrl,
-  }: SocialPreviewOpenGraphRequest): Promise<Response> => {
-    const startedAt = now();
-
+  const resolveOpenGraphSnapshot = async (
+    { handle, requestUrl }: SocialPreviewOpenGraphRequest,
+    startedAt: number
+  ): Promise<OpenGraphSnapshotResolution> => {
     try {
       const outcome = await getChannelSnapshot(handle);
 
-      if (outcome.status === "failure") {
-        const reason =
-          outcome.reason === "not-found"
-            ? "channel_not_found"
-            : "generation_failed";
+      if (outcome.status === "success") {
+        return outcome;
+      }
 
-        return createFailureResponse({
+      const reason =
+        outcome.reason === "not-found"
+          ? "channel_not_found"
+          : "generation_failed";
+
+      return {
+        response: createFailureResponse({
           cause: outcome,
           handle,
           reason,
           requestUrl,
           startedAt,
-        });
-      }
+        }),
+        status: "failure",
+      };
+    } catch (error) {
+      return {
+        response: createFailureResponse({
+          cause: error,
+          handle,
+          reason: "generation_failed",
+          requestUrl,
+          startedAt,
+        }),
+        status: "failure",
+      };
+    }
+  };
 
-      const progress = getPlayButtonProgress(outcome.snapshot);
+  const getOpenGraph = async (
+    request: SocialPreviewOpenGraphRequest
+  ): Promise<Response> => {
+    const startedAt = now();
+    const resolution = await resolveOpenGraphSnapshot(request, startedAt);
+
+    if (resolution.status === "failure") {
+      return resolution.response;
+    }
+
+    try {
+      const progress = getPlayButtonProgress(resolution.snapshot);
       const fontData = await getFontData();
 
-      return await renderOpenGraphImage(outcome.snapshot, progress, fontData);
+      return await renderOpenGraphImage(
+        resolution.snapshot,
+        progress,
+        fontData
+      );
     } catch (error) {
       return createFailureResponse({
         cause: error,
-        handle,
+        handle: request.handle,
         reason: "generation_failed",
-        requestUrl,
+        requestUrl: request.requestUrl,
         startedAt,
       });
     }
   };
 
+  const getOpenGraphHead = async (
+    request: SocialPreviewOpenGraphRequest
+  ): Promise<Response> => {
+    const startedAt = now();
+    const resolution = await resolveOpenGraphSnapshot(request, startedAt);
+
+    if (resolution.status === "failure") {
+      return resolution.response;
+    }
+
+    return new Response(null, {
+      headers: OPEN_GRAPH_IMAGE_HEADERS,
+    });
+  };
+
   return {
     getMetadata: getSocialPreviewMetadata,
     getOpenGraph,
+    getOpenGraphHead,
   };
 };
 
@@ -176,10 +233,7 @@ const renderOpenGraphImage = async (
         },
       ],
       format: "png",
-      headers: {
-        "Cache-Control": OPEN_GRAPH_CACHE_CONTROL,
-        "Content-Type": OPEN_GRAPH_IMAGE_CONTENT_TYPE,
-      },
+      headers: OPEN_GRAPH_IMAGE_HEADERS,
       module: wasmModule,
     }
   );

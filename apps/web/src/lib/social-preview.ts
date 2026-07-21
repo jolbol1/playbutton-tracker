@@ -38,6 +38,9 @@ export interface SocialPreviewMetadata {
 export interface SocialPreview {
   getMetadata: (request: SocialPreviewRequest) => SocialPreviewMetadata;
   getOpenGraph: (request: SocialPreviewOpenGraphRequest) => Promise<Response>;
+  getOpenGraphHead: (
+    request: SocialPreviewOpenGraphRequest
+  ) => Promise<Response>;
 }
 
 interface SocialPreviewContent {
