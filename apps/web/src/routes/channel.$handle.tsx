@@ -205,6 +205,7 @@ function ChannelPageView({ snapshot }: ChannelPageViewProps) {
 
                   <div className="relative">
                     <ProgressBar
+                      ariaLabel={`Progress toward ${trackedPlayButton.name}`}
                       className="h-6 bg-secondary"
                       value={progressMetrics.progressPercentage}
                     />

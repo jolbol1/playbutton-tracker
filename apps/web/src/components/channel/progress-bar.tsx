@@ -1,13 +1,15 @@
 import { cn } from "@/lib/utils";
 
 interface ProgressBarProps {
+  ariaLabel: string;
   className?: string;
   value: number;
 }
 
-export function ProgressBar({ className, value }: ProgressBarProps) {
+export function ProgressBar({ ariaLabel, className, value }: ProgressBarProps) {
   return (
     <div
+      aria-label={ariaLabel}
       aria-valuemax={100}
       aria-valuemin={0}
       aria-valuenow={value}
