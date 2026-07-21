@@ -100,12 +100,17 @@ const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
   year: "numeric",
 });
+const PROGRESS_PREDICTION_WINDOWS = [
+  { period: "Based on last 7 days", periodDays: 7 },
+  { period: "Based on last 28 days", periodDays: 28 },
+] as const;
 
 export const getPlayButtonProgress = (
   snapshot: ChannelSnapshot
 ): PlayButtonProgressProjection => {
   const playButton = getTrackedPlayButton(snapshot.subscriberCount);
   const progressMetrics = getProgressMetrics(snapshot, playButton);
+  const predictions = createProgressPredictions(snapshot, playButton);
   const subscriberCount = snapshot.subscriberCount;
 
   if (subscriberCount === null) {
@@ -117,10 +122,7 @@ export const getPlayButtonProgress = (
         subscriberCountLabel: null,
       },
       playButton,
-      predictions: [
-        createPrediction(snapshot, playButton, 7, "Based on last 7 days"),
-        createPrediction(snapshot, playButton, 28, "Based on last 28 days"),
-      ],
+      predictions,
       remaining: {
         label: progressMetrics.subscribersNeededLabel,
         subscriberCount: null,
@@ -144,16 +146,35 @@ export const getPlayButtonProgress = (
       subscriberCountLabel: formatCompactNumber(subscriberCount),
     },
     playButton,
-    predictions: [
-      createPrediction(snapshot, playButton, 7, "Based on last 7 days"),
-      createPrediction(snapshot, playButton, 28, "Based on last 28 days"),
-    ],
+    predictions,
     remaining: {
       label: progressMetrics.subscribersNeededLabel,
       subscriberCount: remainingSubscriberCount,
     },
     state: hasReachedAllMilestones ? "all-milestones-reached" : "in-progress",
   };
+};
+
+const createProgressPredictions = (
+  snapshot: ChannelSnapshot,
+  playButton: PlayButton
+): readonly [Prediction, Prediction] => {
+  const [sevenDayWindow, twentyEightDayWindow] = PROGRESS_PREDICTION_WINDOWS;
+
+  return [
+    createPrediction(
+      snapshot,
+      playButton,
+      sevenDayWindow.periodDays,
+      sevenDayWindow.period
+    ),
+    createPrediction(
+      snapshot,
+      playButton,
+      twentyEightDayWindow.periodDays,
+      twentyEightDayWindow.period
+    ),
+  ];
 };
 
 /** @deprecated Use getPlayButtonProgress for new callers. */
@@ -321,13 +342,11 @@ const createPredictionForWindow = ({
   }
 
   const daysToGoal = Math.ceil(remainingSubscriberCount / dailyGrowth);
-  const estimatedDate = new Date(capturedAt);
-  estimatedDate.setUTCDate(estimatedDate.getUTCDate() + daysToGoal);
 
   return {
     dailyGrowthLabel: formatDailyGrowth(dailyGrowth),
     daysToGoalLabel: `${NUMBER_FORMATTER.format(daysToGoal)} days`,
-    estimatedDateLabel: DATE_FORMATTER.format(estimatedDate),
+    estimatedDateLabel: getEstimatedDateLabel(capturedAt, daysToGoal),
     growthRoundingExplanation: getGrowthRoundingExplanation(
       subscriberGain,
       dailyGrowth,
@@ -381,6 +400,18 @@ const getGrowthRoundingExplanation = (
   }
 
   return `YouTube rounds public subscriber counts, so smaller changes may not appear in the ${periodDays}-day trend.`;
+};
+
+const getEstimatedDateLabel = (
+  capturedAt: string,
+  daysToGoal: number
+): string => {
+  const estimatedDate = new Date(capturedAt);
+  estimatedDate.setUTCDate(estimatedDate.getUTCDate() + daysToGoal);
+
+  return Number.isNaN(estimatedDate.getTime())
+    ? "Not Available"
+    : DATE_FORMATTER.format(estimatedDate);
 };
 
 const getSubscribersNeededLabel = (

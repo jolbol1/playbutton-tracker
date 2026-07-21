@@ -269,4 +269,28 @@ describe("getPlayButtonProgress", () => {
       });
     }
   });
+
+  it("keeps sub-one projections coherent beyond the supported date range", () => {
+    const progress = getPlayButtonProgress({
+      ...snapshot,
+      subscriberCount: 10_000_000,
+      subsGained7Day: 1,
+      subsGained28Day: 1,
+    });
+
+    expect(progress.predictions[0]).toMatchObject({
+      dailyGrowthLabel: "0 subs/day",
+      daysToGoalLabel: "280,000,000 days",
+      estimatedDateLabel: "Not Available",
+      periodDays: 7,
+      state: "projected",
+    });
+    expect(progress.predictions[1]).toMatchObject({
+      dailyGrowthLabel: "0 subs/day",
+      daysToGoalLabel: "1,120,000,000 days",
+      estimatedDateLabel: "Not Available",
+      periodDays: 28,
+      state: "projected",
+    });
+  });
 });

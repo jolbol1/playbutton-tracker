@@ -5,30 +5,15 @@ import {
   getTrackedPlayButton as getProjectedPlayButton,
   getProgressMetrics as getProjectedProgressMetrics,
   PLAY_BUTTONS as PLAY_BUTTON_CATALOG,
+  type PlayButton as ProgressPlayButton,
+  type Prediction as ProgressPrediction,
+  type ProgressMetrics as ProgressProgressMetrics,
   createPrediction as projectPrediction,
 } from "./play-button-progress";
 
-export interface PlayButton {
-  buttonColor: string;
-  name: string;
-  threshold: number;
-  variant: "silver" | "gold" | "diamond" | "custom" | "red-diamond";
-}
-
-export interface Prediction {
-  dailyGrowthLabel: string;
-  daysToGoalLabel: string;
-  estimatedDateLabel: string;
-  growthRoundingExplanation: string | null;
-  period: string;
-}
-
-export interface ProgressMetrics {
-  progressLabel: string;
-  progressPercentage: number;
-  progressPercentageLabel: string;
-  subscribersNeededLabel: string;
-}
+export type PlayButton = ProgressPlayButton;
+export type Prediction = Omit<ProgressPrediction, "periodDays" | "state">;
+export type ProgressMetrics = ProgressProgressMetrics;
 
 export const PLAY_BUTTONS = PLAY_BUTTON_CATALOG satisfies readonly PlayButton[];
 
