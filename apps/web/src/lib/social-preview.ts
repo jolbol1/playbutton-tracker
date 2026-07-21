@@ -15,13 +15,8 @@ const COMPACT_NUMBER_FORMATTER = new Intl.NumberFormat("en-US", {
   notation: "compact",
 });
 
-interface SocialPreviewChannel extends ChannelSnapshot {
-  channelName: string;
-  handle: string;
-}
-
 type SocialPreviewRequest =
-  | { page: "channel"; channel: SocialPreviewChannel }
+  | { page: "channel"; channel: ChannelSnapshot }
   | { page: "default" };
 
 interface SocialPreviewLink {
@@ -127,7 +122,7 @@ const getDefaultSocialPreviewContent = (): SocialPreviewContent => ({
 });
 
 const getChannelSocialPreviewContent = (
-  channel: SocialPreviewChannel
+  channel: ChannelSnapshot
 ): SocialPreviewContent => {
   const normalizedHandle = normalizeHandle(channel.handle);
   const encodedHandle = encodeURIComponent(normalizedHandle);
@@ -149,7 +144,7 @@ const getChannelSocialPreviewContent = (
 };
 
 const getChannelDescription = (
-  channel: SocialPreviewChannel,
+  channel: ChannelSnapshot,
   normalizedHandle: string,
   progress: PlayButtonProgressProjection
 ): string => {

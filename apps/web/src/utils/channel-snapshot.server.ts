@@ -1,9 +1,7 @@
 import { env } from "@playbutton-tracker/env/server";
+import { ViewStatsError } from "./channel-schema";
 import {
-  type ViewStatsChannelSnapshot,
-  ViewStatsError,
-} from "./channel-schema";
-import {
+  type ChannelSnapshot,
   type ChannelSnapshotFailure,
   createGetChannelSnapshot,
 } from "./channel-snapshot";
@@ -80,7 +78,7 @@ const getLegacyFailureStatus = (
 /** @deprecated Use the provider-neutral getChannelSnapshot outcome. */
 export const getLegacyViewStatsChannelSnapshot = async (
   identifier: string
-): Promise<ViewStatsChannelSnapshot> => {
+): Promise<ChannelSnapshot> => {
   const outcome = await getChannelSnapshot(identifier);
 
   if (outcome.status === "success") {

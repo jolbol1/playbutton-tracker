@@ -5,7 +5,7 @@ import {
   getInitials,
   getTrackedPlayButton,
 } from "@/lib/channel-helpers";
-import type { ViewStatsChannelSnapshot } from "@/utils/channel-schema";
+import type { ChannelSnapshot } from "@/utils/channel-snapshot";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("en-US");
 const LEADING_AT_REGEX = /^@+/;
@@ -27,11 +27,7 @@ export const CHANNEL_OG_IMAGE_SIZE = {
   height: 630,
 } as const;
 
-export function ChannelOgImage({
-  snapshot,
-}: {
-  snapshot: ViewStatsChannelSnapshot;
-}) {
+export function ChannelOgImage({ snapshot }: { snapshot: ChannelSnapshot }) {
   const normalizedHandle = normalizeHandle(snapshot.handle);
   const trackedPlayButton = getTrackedPlayButton(snapshot.subscriberCount);
   const currentSubscribers = snapshot.subscriberCount;

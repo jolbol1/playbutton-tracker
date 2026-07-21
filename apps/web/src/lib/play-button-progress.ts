@@ -208,17 +208,7 @@ export const createPrediction = (
 export const formatCompactNumber = (value: number): string =>
   COMPACT_NUMBER_FORMATTER.format(value);
 
-/** @deprecated Use playButton.milestoneLabel from getPlayButtonProgress. */
-export const formatPlayButtonMilestone = (playButton: PlayButton): string => {
-  if (playButton.variant === "custom") {
-    return `${NUMBER_FORMATTER.format(playButton.threshold)} subscriber milestone (Ruby-style custom award)`;
-  }
-
-  return `${NUMBER_FORMATTER.format(playButton.threshold)} subscriber milestone`;
-};
-
-/** @deprecated Use current and remaining from getPlayButtonProgress. */
-export const getProgressMetrics = (
+const getProgressMetrics = (
   snapshot: ChannelSnapshot,
   playButton: PlayButton
 ): ProgressMetrics => {
