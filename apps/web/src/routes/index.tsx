@@ -58,17 +58,24 @@ function HomeComponent() {
       </div>
       <Card className="w-full border-none shadow-xl">
         <CardHeader className="space-y-2">
-          <p className="text-muted-foreground text-sm">
+          <label
+            className="text-muted-foreground text-sm"
+            htmlFor="channel-identifier"
+          >
             Paste a YouTube channel URL or enter a handle like `@MrBeast`.
-          </p>
+          </label>
         </CardHeader>
         <CardContent>
           <form className="space-y-3" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Input
+                aria-describedby={
+                  error ? "channel-identifier-error" : undefined
+                }
                 aria-invalid={error !== null}
                 autoComplete="off"
                 className="h-11"
+                id="channel-identifier"
                 onChange={(event) => {
                   setError(null);
                   setValue(event.target.value);
@@ -80,7 +87,15 @@ function HomeComponent() {
                 Track Channel
               </Button>
             </div>
-            {error ? <p className="text-destructive text-sm">{error}</p> : null}
+            {error ? (
+              <p
+                className="text-destructive text-sm"
+                id="channel-identifier-error"
+                role="alert"
+              >
+                {error}
+              </p>
+            ) : null}
           </form>
         </CardContent>
       </Card>
