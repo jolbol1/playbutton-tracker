@@ -72,80 +72,106 @@ const getStaticOgImageResponse = (
   return Response.redirect(new URL("/og.png", requestUrl), status);
 };
 
+interface ChannelOgRequest {
+  handle: string;
+  requestUrl: string;
+}
+
+const getChannelOgImageResponse = async ({
+  handle,
+  requestUrl,
+}: ChannelOgRequest): Promise<Response> => {
+  const startedAt = Date.now();
+
+  try {
+    const [fontData, snapshot] = await Promise.all([
+      getInterFontData(),
+      getChannelSnapshot(handle),
+    ]);
+
+    return new ImageResponse(<ChannelOgImage snapshot={snapshot} />, {
+      ...CHANNEL_OG_IMAGE_SIZE,
+      format: "png",
+      fonts: [
+        {
+          data: fontData,
+          name: OG_FONT_NAME,
+          style: "normal",
+          weight: 400,
+        },
+      ],
+      headers: {
+        "Cache-Control": CACHE_CONTROL_HEADER,
+        "Content-Type": CHANNEL_OG_IMAGE_CONTENT_TYPE,
+      },
+      module,
+    });
+  } catch (error) {
+    if (error instanceof ViewStatsError && error.status === 404) {
+      const details = {
+        error: getErrorDetails(error),
+        fallback: "/og.png",
+        fontUrl: INTER_FONT_URL,
+        handle,
+        ok: false,
+        reason: "channel_not_found",
+        requestUrl,
+        tookMs: Date.now() - startedAt,
+      };
+
+      console.warn(
+        "OG image channel not found, falling back to static image",
+        details
+      );
+
+      return getStaticOgImageResponse(requestUrl, 307);
+    }
+
+    const details = {
+      error: getErrorDetails(error),
+      fallback: "/og.png",
+      fontUrl: INTER_FONT_URL,
+      handle,
+      ok: false,
+      reason: "generation_failed",
+      requestUrl,
+      tookMs: Date.now() - startedAt,
+    };
+
+    console.error(
+      "Channel og:image generation failed, falling back to static image",
+      details
+    );
+
+    return getStaticOgImageResponse(requestUrl, 307);
+  }
+};
+
+const getChannelOgHeadResponse = async (
+  request: ChannelOgRequest
+): Promise<Response> => {
+  const response = await getChannelOgImageResponse(request);
+
+  return new Response(null, {
+    headers: response.headers,
+    status: response.status,
+    statusText: response.statusText,
+  });
+};
+
 export const Route = createFileRoute("/channel/$handle/og.png")({
   server: {
     handlers: {
-      GET: async ({ params, request }) => {
-        const startedAt = Date.now();
-
-        try {
-          const [fontData, snapshot] = await Promise.all([
-            getInterFontData(),
-            getChannelSnapshot(params.handle),
-          ]);
-
-          const response = new ImageResponse(
-            <ChannelOgImage snapshot={snapshot} />,
-            {
-              ...CHANNEL_OG_IMAGE_SIZE,
-              format: "png",
-              fonts: [
-                {
-                  data: fontData,
-                  name: OG_FONT_NAME,
-                  style: "normal",
-                  weight: 400,
-                },
-              ],
-              headers: {
-                "Cache-Control": CACHE_CONTROL_HEADER,
-                "Content-Type": CHANNEL_OG_IMAGE_CONTENT_TYPE,
-              },
-              module,
-            }
-          );
-
-          return response;
-        } catch (error) {
-          if (error instanceof ViewStatsError && error.status === 404) {
-            const details = {
-              error: getErrorDetails(error),
-              fallback: "/og.png",
-              fontUrl: INTER_FONT_URL,
-              handle: params.handle,
-              ok: false,
-              reason: "channel_not_found",
-              requestUrl: request.url,
-              tookMs: Date.now() - startedAt,
-            };
-
-            console.warn(
-              "OG image channel not found, falling back to static image",
-              details
-            );
-
-            return getStaticOgImageResponse(request.url, 307);
-          }
-
-          const details = {
-            error: getErrorDetails(error),
-            fallback: "/og.png",
-            fontUrl: INTER_FONT_URL,
-            handle: params.handle,
-            ok: false,
-            reason: "generation_failed",
-            requestUrl: request.url,
-            tookMs: Date.now() - startedAt,
-          };
-
-          console.error(
-            "Channel og:image generation failed, falling back to static image",
-            details
-          );
-
-          return getStaticOgImageResponse(request.url, 307);
-        }
-      },
+      GET: ({ params, request }) =>
+        getChannelOgImageResponse({
+          handle: params.handle,
+          requestUrl: request.url,
+        }),
+      HEAD: ({ params, request }) =>
+        getChannelOgHeadResponse({
+          handle: params.handle,
+          requestUrl: request.url,
+        }),
     },
   },
 });
