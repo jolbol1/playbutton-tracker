@@ -4,13 +4,11 @@ import { type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { extractChannelIdentifier } from "@/lib/channel-identifier";
 
 export const Route = createFileRoute("/")({
   component: HomeComponent,
 });
-
-const DIRECT_HANDLE_REGEX = /^@?[A-Za-z0-9._-]+$/;
-const LEADING_AT_REGEX = /^@/;
 
 function HomeComponent() {
   const navigate = useNavigate();
@@ -20,7 +18,7 @@ function HomeComponent() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const handle = extractChannelHandle(value);
+    const handle = extractChannelIdentifier(value);
 
     if (handle === null) {
       setError("Enter a YouTube channel URL or @handle.");
@@ -88,40 +86,4 @@ function HomeComponent() {
       </Card>
     </div>
   );
-}
-
-function extractChannelHandle(value: string) {
-  const trimmedValue = value.trim();
-
-  if (!trimmedValue) {
-    return null;
-  }
-
-  if (DIRECT_HANDLE_REGEX.test(trimmedValue)) {
-    return trimmedValue.replace(LEADING_AT_REGEX, "");
-  }
-
-  const normalizedValue = trimmedValue.startsWith("http")
-    ? trimmedValue
-    : `https://${trimmedValue}`;
-
-  try {
-    const url = new URL(normalizedValue);
-    const pathSegments = url.pathname.split("/").filter(Boolean);
-    const handleSegment = pathSegments.find((segment) =>
-      segment.startsWith("@")
-    );
-
-    if (handleSegment) {
-      return handleSegment.slice(1);
-    }
-
-    if (pathSegments[0] === "channel" && pathSegments[1]) {
-      return pathSegments[1];
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
 }

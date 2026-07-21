@@ -1,6 +1,7 @@
 import { env } from "@playbutton-tracker/env/server";
 import { z } from "zod";
 
+import { normalizeViewStatsIdentifier } from "../lib/channel-identifier";
 import { calculateSubscriberGain } from "./channel-history";
 import {
   type ViewStatsChannelSnapshot,
@@ -29,10 +30,6 @@ const channelStatsPointSchema = z.object({
 const channelStatsResponseSchema = z.object({
   data: z.array(channelStatsPointSchema),
 });
-
-const normalizeRequestHandle = (handle: string): string => {
-  return handle.startsWith("@") ? handle : `@${handle}`;
-};
 
 const extractSignedBytes = (source: string): ArrayBuffer => {
   const decoded = atob(source);
@@ -188,7 +185,7 @@ const fetchFromViewStats = async <T>(
 export const getChannelSnapshot = async (
   handleInput: string
 ): Promise<ViewStatsChannelSnapshot> => {
-  const normalizedHandle = normalizeRequestHandle(handleInput);
+  const normalizedHandle = normalizeViewStatsIdentifier(handleInput);
   const encodedHandle = encodeURIComponent(normalizedHandle);
 
   const [metadata, stats7Day, stats28Day] = await Promise.all([
