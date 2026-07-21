@@ -1,18 +1,7 @@
-import { z } from "zod";
+import type { ChannelSnapshot } from "./channel-snapshot";
 
-export const getChannelSnapshotInputSchema = z.object({
-  handle: z.string().trim().min(1).max(100),
-});
-
-export interface ViewStatsChannelSnapshot {
-  avatarUrl: string | null;
-  capturedAt: string;
-  channelName: string;
-  handle: string;
-  subscriberCount: number | null;
-  subsGained7Day: number | null;
-  subsGained28Day: number | null;
-}
+/** @deprecated Use the provider-neutral ChannelSnapshot type. */
+export type ViewStatsChannelSnapshot = ChannelSnapshot;
 
 export class ViewStatsError extends Error {
   readonly details?: unknown;

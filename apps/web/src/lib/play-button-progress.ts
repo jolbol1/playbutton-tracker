@@ -1,9 +1,4 @@
-export interface ChannelSnapshot {
-  capturedAt: string;
-  subscriberCount: number | null;
-  subsGained7Day: number | null;
-  subsGained28Day: number | null;
-}
+import type { ChannelSnapshot } from "../utils/channel-snapshot";
 
 export interface PlayButton {
   buttonColor: string;

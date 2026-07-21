@@ -7,7 +7,7 @@ import {
   ChannelOgImage,
 } from "@/lib/channel-og";
 import { ViewStatsError } from "@/utils/channel-schema";
-import { getChannelSnapshot } from "@/utils/channel-snapshot.server";
+import { getLegacyViewStatsChannelSnapshot } from "@/utils/channel-snapshot.server";
 
 const CACHE_CONTROL_HEADER =
   "public, max-age=900, s-maxage=900, stale-while-revalidate=86400";
@@ -86,7 +86,7 @@ const getChannelOgImageResponse = async ({
   try {
     const [fontData, snapshot] = await Promise.all([
       getInterFontData(),
-      getChannelSnapshot(handle),
+      getLegacyViewStatsChannelSnapshot(handle),
     ]);
 
     return new ImageResponse(<ChannelOgImage snapshot={snapshot} />, {

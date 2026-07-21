@@ -17,7 +17,7 @@ import { getInitials } from "@/lib/channel-helpers";
 import { CHANNEL_OG_IMAGE_ALT, getChannelSeoMeta } from "@/lib/channel-og";
 import { getPlayButtonProgress } from "@/lib/play-button-progress";
 import { cn } from "@/lib/utils";
-import type { ViewStatsChannelSnapshot } from "@/utils/channel-schema";
+import type { ChannelSnapshot } from "@/utils/channel-snapshot";
 import { getChannelSnapshotFn } from "../utils/channel-snapshot.functions";
 
 export const Route = createFileRoute("/channel/$handle")({
@@ -105,7 +105,7 @@ function ChannelPage() {
 }
 
 interface ChannelPageViewProps {
-  snapshot: ViewStatsChannelSnapshot;
+  snapshot: ChannelSnapshot;
 }
 
 function ChannelPageView({ snapshot }: ChannelPageViewProps) {
