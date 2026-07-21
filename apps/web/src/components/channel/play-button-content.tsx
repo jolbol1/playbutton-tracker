@@ -42,6 +42,7 @@ export function PlayButtonContent({
         />
       </div>
       <div
+        aria-hidden="true"
         className={cn(
           "pointer-events-none absolute inset-0 px-6 py-8 opacity-0 transition duration-200",
           isHovered && "opacity-100"
