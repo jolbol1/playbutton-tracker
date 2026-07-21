@@ -62,8 +62,9 @@ const COMPACT_NUMBER_FORMATTER = new Intl.NumberFormat("en-US", {
 });
 const NUMBER_FORMATTER = new Intl.NumberFormat("en-US");
 const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
-  month: "long",
   day: "numeric",
+  month: "long",
+  timeZone: "UTC",
   year: "numeric",
 });
 const WHITESPACE_REGEX = /\s+/;
@@ -116,8 +117,8 @@ export function createPrediction(
   }
 
   const daysToGoal = Math.ceil(subscribersNeeded / dailyGrowth);
-  const estimatedDate = new Date();
-  estimatedDate.setDate(estimatedDate.getDate() + daysToGoal);
+  const estimatedDate = new Date(snapshot.capturedAt);
+  estimatedDate.setUTCDate(estimatedDate.getUTCDate() + daysToGoal);
 
   return {
     dailyGrowthLabel: formatDailyGrowth(dailyGrowth),

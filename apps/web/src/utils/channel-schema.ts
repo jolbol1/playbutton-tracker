@@ -6,6 +6,7 @@ export const getChannelSnapshotInputSchema = z.object({
 
 export interface ViewStatsChannelSnapshot {
   avatarUrl: string | null;
+  capturedAt: string;
   channelName: string;
   handle: string;
   subscriberCount: number | null;

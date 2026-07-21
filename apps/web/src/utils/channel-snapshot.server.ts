@@ -223,6 +223,7 @@ export const getChannelSnapshot = async (
 
   return {
     avatarUrl: metadata.data.avatarUrl,
+    capturedAt: new Date().toISOString(),
     channelName: metadata.data.displayName,
     handle: metadata.data.handle,
     subscriberCount: metadata.data.subscriberCount,
