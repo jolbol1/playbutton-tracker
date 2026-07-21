@@ -40,6 +40,7 @@ export interface PlayButtonProgressProjection {
   remaining: {
     label: string;
     subscriberCount: number | null;
+    subscriberCountLabel: string | null;
   };
   state: "all-milestones-reached" | "in-progress" | "unavailable";
 }
@@ -121,6 +122,7 @@ export const getPlayButtonProgress = (
       remaining: {
         label: progressMetrics.subscribersNeededLabel,
         subscriberCount: null,
+        subscriberCountLabel: null,
       },
       state: "unavailable",
     };
@@ -145,6 +147,7 @@ export const getPlayButtonProgress = (
     remaining: {
       label: progressMetrics.subscribersNeededLabel,
       subscriberCount: remainingSubscriberCount,
+      subscriberCountLabel: formatCompactNumber(remainingSubscriberCount),
     },
     state: hasReachedAllMilestones ? "all-milestones-reached" : "in-progress",
   };

@@ -1,4 +1,5 @@
 import type { ChannelSnapshot } from "../utils/channel-snapshot";
+import { normalizeChannelHandle } from "./channel-identifier";
 import {
   getPlayButtonProgress,
   type PlayButtonProgressProjection,
@@ -9,11 +10,6 @@ const DEFAULT_TITLE = "Play Button Tracker";
 const DEFAULT_DESCRIPTION =
   "Track YouTube channel subscriber progress toward creator awards, estimate milestone timelines, and view recent growth trends.";
 const DEFAULT_IMAGE_ALT = "Play Button Tracker social preview";
-const LEADING_AT_REGEX = /^@+/;
-const COMPACT_NUMBER_FORMATTER = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 1,
-  notation: "compact",
-});
 
 type SocialPreviewRequest =
   | { page: "channel"; channel: ChannelSnapshot }
@@ -124,7 +120,7 @@ const getDefaultSocialPreviewContent = (): SocialPreviewContent => ({
 const getChannelSocialPreviewContent = (
   channel: ChannelSnapshot
 ): SocialPreviewContent => {
-  const normalizedHandle = normalizeHandle(channel.handle);
+  const normalizedHandle = normalizeChannelHandle(channel.handle);
   const encodedHandle = encodeURIComponent(normalizedHandle);
   const pageUrl = `${PRODUCTION_ORIGIN}/channel/${encodedHandle}`;
   const progress = getPlayButtonProgress(channel);
@@ -155,18 +151,15 @@ const getChannelDescription = (
   }
 
   const subscriberCountLabel = progress.current.subscriberCountLabel;
-  const remainingSubscriberCount = progress.remaining.subscriberCount;
+  const remainingSubscriberCountLabel = progress.remaining.subscriberCountLabel;
 
   if (
     progress.state === "unavailable" ||
     subscriberCountLabel === null ||
-    remainingSubscriberCount === null
+    remainingSubscriberCountLabel === null
   ) {
     return `Track ${channelIdentity} on Play Button Tracker and see progress toward the ${progress.playButton.name}.`;
   }
 
-  return `${channelIdentity} has ${subscriberCountLabel} subscribers and needs ${COMPACT_NUMBER_FORMATTER.format(remainingSubscriberCount)} more for the ${progress.playButton.name}.`;
+  return `${channelIdentity} has ${subscriberCountLabel} subscribers and needs ${remainingSubscriberCountLabel} more for the ${progress.playButton.name}.`;
 };
-
-const normalizeHandle = (handle: string): string =>
-  handle.trim().replace(LEADING_AT_REGEX, "").toLowerCase();

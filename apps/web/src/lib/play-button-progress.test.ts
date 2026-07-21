@@ -34,6 +34,7 @@ describe("getPlayButtonProgress", () => {
     expect(progress.remaining).toEqual({
       label: "10K more subscribers needed",
       subscriberCount: 10_000,
+      subscriberCountLabel: "10K",
     });
     expect(progress.predictions).toEqual([
       {
@@ -74,6 +75,7 @@ describe("getPlayButtonProgress", () => {
     expect(progress.remaining).toEqual({
       label: "Unable to calculate remaining subscribers",
       subscriberCount: null,
+      subscriberCountLabel: null,
     });
     expect(progress.predictions).toEqual([
       {
@@ -152,6 +154,7 @@ describe("getPlayButtonProgress", () => {
         label:
           "This channel has already reached every tracked play button milestone",
         subscriberCount: 0,
+        subscriberCountLabel: "0",
       });
 
       for (const prediction of progress.predictions) {

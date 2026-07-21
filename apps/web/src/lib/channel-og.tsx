@@ -5,10 +5,10 @@ import {
   getInitials,
   getTrackedPlayButton,
 } from "@/lib/channel-helpers";
+import { normalizeChannelHandle } from "@/lib/channel-identifier";
 import type { ChannelSnapshot } from "@/utils/channel-snapshot";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("en-US");
-const LEADING_AT_REGEX = /^@+/;
 
 const COLORS = {
   accent: "#ff0000",
@@ -28,7 +28,7 @@ export const CHANNEL_OG_IMAGE_SIZE = {
 } as const;
 
 export function ChannelOgImage({ snapshot }: { snapshot: ChannelSnapshot }) {
-  const normalizedHandle = normalizeHandle(snapshot.handle);
+  const normalizedHandle = normalizeChannelHandle(snapshot.handle);
   const trackedPlayButton = getTrackedPlayButton(snapshot.subscriberCount);
   const currentSubscribers = snapshot.subscriberCount;
   const remainingSubscribers =
@@ -181,10 +181,6 @@ function PredictionCard({
       </div>
     </div>
   );
-}
-
-function normalizeHandle(handle: string): string {
-  return handle.replace(LEADING_AT_REGEX, "").trim().toLowerCase();
 }
 
 const styles = {
